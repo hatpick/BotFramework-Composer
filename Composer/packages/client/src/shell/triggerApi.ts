@@ -28,7 +28,7 @@ function createTriggerApi(
     return value.substring(startIndex + 1, endIndex);
   };
 
-  const createTriggerHandler = async (id, formData, url) => {
+  const createTriggerHandler = async (id, formData, url, checkDuplicatedKind) => {
     const luFile = luFileResolver(id);
     const lgFile = lgFileResolver(id);
     const dialog = dialogResolver(id);
@@ -38,24 +38,38 @@ function createTriggerApi(
     if (!lgFile) throw new Error(`lg file ${id} not found`);
     if (!dialog) throw new Error(`dialog ${id} not found`);
     const newDialog = generateNewDialog(dialogs, dialog.id, formData, schemas.sdk?.content);
+    const dialogPayload = {
+      id: newDialog.id,
+      projectId,
+      content: newDialog.content,
+    };
     const index = get(newDialog, 'content.triggers', []).length - 1;
     if (formData.$kind === intentTypeKey && formData.triggerPhrases) {
       const intent = { Name: formData.intent, Body: formData.triggerPhrases };
       luFile && (await createLuIntent({ id: luFile.id, intent, projectId }));
+      await updateDialog(dialogPayload);
     } else if (formData.$kind === qnaMatcherKey) {
-      const designerId1 = getDesignerIdFromDialogPath(
-        newDialog,
-        `content.triggers[${index}].actions[0].actions[1].prompt`
-      );
-      const designerId2 = getDesignerIdFromDialogPath(
-        newDialog,
-        `content.triggers[${index}].actions[0].elseActions[0].activity`
-      );
-      const lgTemplates: LgTemplate[] = [
-        LgTemplateSamples.TextInputPromptForQnAMatcher(designerId1) as LgTemplate,
-        LgTemplateSamples.SendActivityForQnAMatcher(designerId2) as LgTemplate,
-      ];
-      await createLgTemplates({ id: lgFile.id, templates: lgTemplates });
+      let shouldCreate = true;
+      if (checkDuplicatedKind) {
+        const triggers = get(dialog, 'triggers', []);
+        shouldCreate = !triggers.find((t) => t.type === qnaMatcherKey);
+      }
+      if (shouldCreate) {
+        const designerId1 = getDesignerIdFromDialogPath(
+          newDialog,
+          `content.triggers[${index}].actions[0].actions[1].prompt`
+        );
+        const designerId2 = getDesignerIdFromDialogPath(
+          newDialog,
+          `content.triggers[${index}].actions[0].elseActions[0].activity`
+        );
+        const lgTemplates: LgTemplate[] = [
+          LgTemplateSamples.TextInputPromptForQnAMatcher(designerId1) as LgTemplate,
+          LgTemplateSamples.SendActivityForQnAMatcher(designerId2) as LgTemplate,
+        ];
+        await createLgTemplates({ id: lgFile.id, templates: lgTemplates });
+        await updateDialog(dialogPayload);
+      }
     } else if (formData.$kind === onChooseIntentKey) {
       const designerId1 = getDesignerIdFromDialogPath(newDialog, `content.triggers[${index}].actions[4].prompt`);
       const designerId2 = getDesignerIdFromDialogPath(
@@ -82,13 +96,8 @@ function createTriggerApi(
 
       await createLgTemplates({ id: `common.${locale}`, templates: lgTemplates2 });
       await createLgTemplates({ id: lgFile.id, templates: lgTemplates1 });
+      await updateDialog(dialogPayload);
     }
-    const dialogPayload = {
-      id: newDialog.id,
-      projectId,
-      content: newDialog.content,
-    };
-    await updateDialog(dialogPayload);
     if (url) {
       navigateTo(url);
     } else {

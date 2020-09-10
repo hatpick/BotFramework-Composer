@@ -585,7 +585,7 @@ const DesignPage: React.FC<RouteComponentProps<{ dialogId: string; projectId: st
     };
     if (dialogId) {
       const url = `/bot/${projectId}/knowledge-base/${dialogId}`;
-      createTrigger(dialogId, formData, url);
+      createTrigger(dialogId, formData, url, true);
       // import qna from urls
       if (urls.length > 0) {
         await importQnAFromUrls({ id: `${dialogId}.${locale}`, urls });

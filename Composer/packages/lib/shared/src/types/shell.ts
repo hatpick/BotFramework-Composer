@@ -99,11 +99,11 @@ export interface ShellApi {
   announce: (message: string) => void;
   displayManifestModal: (manifestId: string) => void;
   updateDialogSchema: (_: DialogSchemaFile) => Promise<void>;
-  createTrigger: (id: string, formData, url?: string) => void;
   skillsInSettings: {
     get: (path: string) => any;
     set: (skillName: string, skillsData: Partial<Skill>) => Promise<void>;
   };
+  createTrigger: (id: string, formData, url?: string, checkDuplicatedKind?: boolean) => void;
 }
 
 export interface Shell {
