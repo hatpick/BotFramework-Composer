@@ -42,11 +42,10 @@ import {
   projectMetaDataState,
   isEjectRuntimeExistState,
   qnaFilesState,
+  botProjectsSpaceState,
   filePersistenceState,
 } from '../atoms';
 import { undoFunctionState, undoVersionState } from '../undo/history';
-import { dispatcherState } from '../DispatcherWrapper';
-import { Dispatcher } from '../dispatchers';
 
 export const botStateByProjectIdSelector = selector({
   key: 'botStateByProjectIdSelector',
@@ -235,32 +234,6 @@ export const botStateByProjectIdSelectorFamily = selectorFamily({
   },
 });
 
-// TODO Load Bot Projects file
-
-const loadBotProjects = (dispatcher: Dispatcher) => {
-  return {
-    onAction: async (validatedBotProject) => {
-      const projectId = await dispatcher.openProject(validatedBotProject.workspace, 'default');
-      dispatcher.addToBotProject(projectId, true);
-      for (const skill of validatedBotProject.skills) {
-        const projectId = await dispatcher.openProject(skill.workspace, 'default');
-        dispatcher.addToBotProject(projectId, false);
-      }
-    },
-  };
-};
-
-export const loadBotProjectFileSelector = selector({
-  key: 'loadBotProjectFileSelector',
-  get: ({ get }) => {
-    const dispatcher = get(dispatcherState);
-    if (!dispatcher) {
-      return undefined;
-    }
-    return loadBotProjects(dispatcher);
-  },
-});
-
 export const undoHistorySelector = selectorFamily({
   key: 'undoHistorySelector',
   get: (projectId: string) => ({ get }) => {
@@ -272,5 +245,17 @@ export const filePersistenceSelector = selectorFamily({
   key: 'filePersistenceSelector',
   get: (projectId: string) => ({ get }) => {
     return get(filePersistenceState(projectId));
+  },
+});
+
+export const botProjectSpaceSelector = selector({
+  key: 'botProjectSpaceSelector',
+  get: ({ get }) => {
+    const botProjects = get(botProjectsSpaceState);
+    const result = botProjects.map((botProjectId: string) => {
+      const name = get(botNameState(botProjectId));
+      return { projectId: botProjectId, name };
+    });
+    return result;
   },
 });

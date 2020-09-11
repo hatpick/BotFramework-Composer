@@ -37,12 +37,6 @@ class FilePersistence {
   }
 
   public async notify(currentAssets: BotAssets, previousAssets: BotAssets) {
-    // if (!currentAssets.projectId) return;
-    // if (currentAssets.projectId !== previousAssets.projectId) {
-    //   this.init(currentAssets.projectId);
-    //   return;
-    // }
-
     const fileChanges: IFileChange[] = this.getAssetsChanges(currentAssets, previousAssets);
 
     for (const change of fileChanges) {
