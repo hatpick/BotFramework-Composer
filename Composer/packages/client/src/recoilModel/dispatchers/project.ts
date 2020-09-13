@@ -28,7 +28,6 @@ import {
   botDiagnosticsState,
   botProjectsSpaceState,
   projectMetaDataState,
-  currentProjectIdState,
   filePersistenceState,
 } from '../atoms';
 import { QnABotTemplateId } from '../../constants';
@@ -177,7 +176,6 @@ export const projectDispatcher = () => {
 
       // Important: gotoSnapshot will wipe all states.
       const newSnapshot = snapshot.map(({ set }) => {
-        set(currentProjectIdState, projectId);
         set(skillManifestsState(projectId), skillManifestFiles);
         set(luFilesState(projectId), initLuFilesStatus(botName, luFiles, dialogs));
         set(lgFilesState(projectId), lgFiles);
