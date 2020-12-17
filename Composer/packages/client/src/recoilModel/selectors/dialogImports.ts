@@ -5,33 +5,11 @@ import { LanguageFileImport, LgFile, LuFile, QnAFile } from '@bfc/shared';
 import uniqBy from 'lodash/uniqBy';
 import { selector, selectorFamily } from 'recoil';
 
-import { getBaseName, getFileName } from '../../utils/fileUtil';
+import { getBaseName } from '../../utils/fileUtil';
 import { botProjectIdsState, lgFilesState, localeState, luFilesState, qnaFilesState } from '../atoms';
 
-// eslint-disable-next-line security/detect-unsafe-regex
-const importRegex = /\[(?<id>.*?)]\((?<importPath>.*?)(?="|\))(?<optionalpart>".*")?\)/g;
-
-const getImportsHelper = (content: string): LanguageFileImport[] => {
-  const lines = content.split(/\r?\n/g).filter((l) => !!l) ?? [];
-
-  return (lines
-    .map((l) => {
-      importRegex.lastIndex = 0;
-      return importRegex.exec(l) as RegExpExecArray;
-    })
-    .filter(Boolean) as RegExpExecArray[]).map((regExecArr) => {
-    const importPath = regExecArr.groups?.importPath ?? '';
-
-    return {
-      displayName: regExecArr.groups?.id ?? '',
-      importPath,
-      id: getBaseName(getFileName(importPath)),
-    };
-  });
-};
-
 // Finds all the file imports starting from a given dialog file.
-export const getLanguageFileImports = <T extends { id: string; content: string }>(
+export const getLanguageFileImports = <T extends LgFile | LuFile | QnAFile>(
   rootDialogId: string,
   getFile: (fileId: string) => T
 ): LanguageFileImport[] => {
@@ -55,7 +33,14 @@ export const getLanguageFileImports = <T extends { id: string; content: string }
       console.warn(`Could not find language import file ${currentId}`);
       continue;
     }
-    const currentImports = getImportsHelper(file.content);
+    const currentImports = file.imports.map((item) => {
+      return {
+        displayName: item.description,
+        importPath: item.path,
+        id: item.id,
+      };
+    });
+
     visitedIds.push(currentId);
     imports.push(...currentImports);
     const newIds = currentImports.map((ci) => getBaseName(ci.id));
