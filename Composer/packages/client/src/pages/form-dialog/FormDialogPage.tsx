@@ -202,6 +202,7 @@ const FormDialogPage: React.FC<Props> = React.memo((props: Props) => {
           />
           {validSchemaId ? (
             <VisualFormDialogSchemaEditor
+              showEditor
               generationInProgress={formDialogGenerationProgressing}
               projectId={projectId}
               schemaId={schemaId}

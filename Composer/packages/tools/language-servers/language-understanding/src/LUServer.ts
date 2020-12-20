@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { basename } from 'path';
+
 import URI from 'vscode-uri';
-import { IConnection, TextDocuments } from 'vscode-languageserver';
+import { Definition, IConnection, TextDocuments, DefinitionLink, HandlerResult } from 'vscode-languageserver';
 import {
   TextDocument,
   Diagnostic,
@@ -14,14 +16,21 @@ import {
   DiagnosticSeverity,
   TextEdit,
 } from 'vscode-languageserver-types';
-import { TextDocumentPositionParams, DocumentOnTypeFormattingParams } from 'vscode-languageserver-protocol';
+import { TextDocumentPositionParams, DocumentOnTypeFormattingParams, Location } from 'vscode-languageserver-protocol';
 import { updateIntent, isValid, checkSection, PlaceHolderSectionName } from '@bfc/indexers/lib/utils/luUtil';
 import { luIndexer } from '@bfc/indexers';
 import { parser } from '@microsoft/bf-lu/lib/parser';
 
 import { EntityTypesObj, LineState } from './entityEnum';
 import * as util from './matchingPattern';
-import { LUImportResolverDelegate, LUOption, LUDocument, generageDiagnostic, convertDiagnostics } from './utils';
+import {
+  LUImportResolverDelegate,
+  LUOption,
+  LUDocument,
+  generageDiagnostic,
+  convertDiagnostics,
+  getRangeAtPosition,
+} from './utils';
 
 // define init methods call from client
 const LABELEXPERIENCEREQUEST = 'labelingExperienceRequest';
@@ -73,9 +82,11 @@ export class LUServer {
           documentOnTypeFormattingProvider: {
             firstTriggerCharacter: '\n',
           },
+          definitionProvider: true,
         },
       };
     });
+    this.connection.onDefinition(async (params) => await this.definition(params));
     this.connection.onCompletion((params) => this.completion(params));
     this.connection.onDocumentOnTypeFormatting((docTypingParams) => this.docTypeFormat(docTypingParams));
     this.connection.onRequest((method, params) => {
@@ -366,6 +377,31 @@ export class LUServer {
       return Promise.resolve(parsedContent.LUISJsonStructure);
     } else {
       return undefined;
+    }
+  }
+
+  protected async definition(
+    params: TextDocumentPositionParams
+  ): Promise<Thenable<HandlerResult<Definition | DefinitionLink[] | undefined | null, void>>> {
+    const document = this.documents.get(params.textDocument.uri);
+    if (!document) {
+      return Promise.resolve(null);
+    }
+    const lgFile = await this.getLUDocument(document)?.index();
+    if (!lgFile) {
+      return Promise.resolve(null);
+    }
+
+    const wordRange = getRangeAtPosition(document, params.position);
+    const word = document.getText(wordRange);
+
+    if (/\.lu$/i.test(word)) {
+      const fileId = basename(word, '.lu');
+
+      return Location.create(fileId, {
+        start: params.position,
+        end: params.position,
+      });
     }
   }
 

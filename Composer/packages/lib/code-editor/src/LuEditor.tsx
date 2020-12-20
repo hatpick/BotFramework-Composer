@@ -25,6 +25,7 @@ export interface LULSPEditorProps extends BaseEditorProps {
         path: string;
       }
     | string;
+  onGoToFile?: (fileId: string) => void;
 }
 
 const defaultLUServer = {
@@ -77,6 +78,7 @@ const LuEditor: React.FC<LULSPEditorProps> = (props) => {
     onInit: onInitProp,
     placeholder = defaultPlaceholder,
     helpURL = LU_HELP,
+    onGoToFile,
     ...restProps
   } = props;
   const luServer = languageServer || defaultLUServer;
@@ -104,7 +106,12 @@ const LuEditor: React.FC<LULSPEditorProps> = (props) => {
       listen({
         webSocket,
         onConnection: (connection: MessageConnection) => {
-          const languageClient = createLanguageClient(formatMessage('LU Language Client'), ['lu'], connection);
+          const languageClient = createLanguageClient(
+            formatMessage('LU Language Client'),
+            ['lu'],
+            connection,
+            onGoToFile
+          );
 
           const m = monacoRef.current;
           if (m) {

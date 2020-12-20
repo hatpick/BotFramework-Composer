@@ -3,14 +3,16 @@
 
 import normalizeUrl from 'normalize-url';
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import { MessageConnection } from 'vscode-ws-jsonrpc';
+import { CancellationToken, MessageConnection } from 'vscode-ws-jsonrpc';
 import {
   MonacoLanguageClient,
   CloseAction,
   ErrorAction,
   createConnection,
   LanguageClientOptions,
+  ProvideDefinitionSignature,
 } from 'monaco-languageclient';
+import { TextDocument, Position, Location } from 'vscode';
 
 export function createUrl(server: { [key: string]: string } | string): string {
   if (typeof server === 'string') {
@@ -38,7 +40,8 @@ export function createWebSocket(url: string): WebSocket {
 export function createLanguageClient(
   name: string,
   documentSelector: LanguageClientOptions['documentSelector'],
-  connection: MessageConnection
+  connection: MessageConnection,
+  onGoToFile?: (fileId: string) => void
 ): MonacoLanguageClient {
   return new MonacoLanguageClient({
     name,
@@ -49,6 +52,22 @@ export function createLanguageClient(
       errorHandler: {
         error: () => ErrorAction.Continue,
         closed: () => CloseAction.DoNotRestart,
+      },
+      middleware: {
+        provideDefinition: async (
+          document: TextDocument,
+          position: Position,
+          token: CancellationToken,
+          next: ProvideDefinitionSignature
+        ) => {
+          const result = await next(document, position, token);
+
+          if (result) {
+            onGoToFile?.((result as Location).uri.toString());
+          }
+
+          return null;
+        },
       },
     },
     // create a language client connection from the JSON RPC connection on demand

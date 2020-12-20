@@ -54,10 +54,21 @@ type Props = {
   templates: string[];
   onChange: (id: string, content: string) => void;
   onGenerate: (schemaId: string) => void;
+  showCodeEditorOption?: boolean;
+  showEditor: boolean;
 };
 
 export const VisualFormDialogSchemaEditor = React.memo((props: Props) => {
-  const { projectId, schemaId, templates, onChange, onGenerate, generationInProgress = false } = props;
+  const {
+    projectId,
+    schemaId,
+    templates,
+    onChange,
+    onGenerate,
+    generationInProgress = false,
+    showCodeEditorOption = false,
+    showEditor: defaultShowEditor = false,
+  } = props;
 
   const schema = useRecoilValue(formDialogSchemaState({ projectId, schemaId }));
 
@@ -66,7 +77,11 @@ export const VisualFormDialogSchemaEditor = React.memo((props: Props) => {
   const getEditorValueRef = React.useRef<() => string>(() => schema.content || JSON.stringify(defaultValue, null, 2));
   const dialogSchemaContentRef = React.useRef(schema.content || JSON.stringify(defaultValue, null, 2));
 
-  const [showEditor, setShowEditor] = React.useState(false);
+  const [showEditor, setShowEditor] = React.useState(defaultShowEditor);
+
+  React.useEffect(() => {
+    setShowEditor(defaultShowEditor);
+  }, [defaultShowEditor]);
 
   React.useEffect(() => {
     if (showEditor) {
@@ -91,16 +106,18 @@ export const VisualFormDialogSchemaEditor = React.memo((props: Props) => {
 
   return (
     <Root verticalFill inProgress={generationInProgress}>
-      <Stack horizontal horizontalAlign="end" styles={editorTopBarStyles} verticalAlign="center">
-        <ActionButton
-          onClick={() => {
-            setShowEditor(!showEditor);
-            TelemetryClient.track('EditModeToggled', { jsonView: !showEditor });
-          }}
-        >
-          {showEditor ? formatMessage('Hide code') : formatMessage('Show code')}
-        </ActionButton>
-      </Stack>
+      {showCodeEditorOption ? (
+        <Stack horizontal horizontalAlign="end" styles={editorTopBarStyles} verticalAlign="center">
+          <ActionButton
+            onClick={() => {
+              setShowEditor(!showEditor);
+              TelemetryClient.track('EditModeToggled', { jsonView: !showEditor });
+            }}
+          >
+            {showEditor ? formatMessage('Hide code') : formatMessage('Show code')}
+          </ActionButton>
+        </Stack>
+      ) : null}
 
       <Stack
         grow
@@ -129,7 +146,6 @@ export const VisualFormDialogSchemaEditor = React.memo((props: Props) => {
             editorDidMount={onEditorDidMount}
             editorSettings={{ lineNumbers: true, minimap: true, wordWrap: true }}
             height="calc(100%)"
-            options={{ readOnly: true }}
             value={defaultValue}
             onChange={noop}
             onError={noop}

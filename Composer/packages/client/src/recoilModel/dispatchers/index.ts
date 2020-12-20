@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { documentDispatcher } from '../../ux/dispatcher/documents';
+
 import { dialogsDispatcher } from './dialogs';
 import { dialogSchemaDispatcher } from './dialogSchema';
 import { projectDispatcher } from './project';
@@ -54,6 +56,7 @@ const createDispatchers = () => {
     ...botProjectFileDispatcher(),
     ...zoomDispatcher(),
     ...recognizerDispatcher(),
+    ...documentDispatcher(),
   };
 };
 

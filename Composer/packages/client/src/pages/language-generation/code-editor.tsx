@@ -26,10 +26,11 @@ interface CodeEditorProps extends RouteComponentProps<{}> {
   projectId: string;
   skillId?: string;
   lgFileId?: string;
+  onGoToFile?: (fileId: string) => void;
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = (props) => {
-  const { dialogId, projectId, skillId, lgFileId } = props;
+  const { dialogId, projectId, skillId, lgFileId, onGoToFile } = props;
   const actualProjectId = skillId ?? projectId;
 
   const userSettings = useRecoilValue(userSettingsState);
@@ -171,6 +172,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         value={content}
         onChange={onChange}
         onChangeSettings={handleSettingsChange}
+        onGoToFile={onGoToFile}
       />
     );
   }, [lgOption]);
@@ -187,6 +189,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         }}
         value={defaultLangContent}
         onChange={() => {}}
+        onGoToFile={onGoToFile}
       />
     );
   }, [dialogId]);

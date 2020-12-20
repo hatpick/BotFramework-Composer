@@ -22,6 +22,7 @@ const placeholder = formatMessage(
 
 export interface LGLSPEditorProps extends BaseEditorProps {
   lgOption?: LGOption;
+  onGoToFile?: (fileId: string) => void;
   languageServer?:
     | {
         host?: string;
@@ -49,7 +50,7 @@ export function LgEditor(props: LGLSPEditorProps) {
     ...props.options,
   };
 
-  const { lgOption, languageServer, onInit: onInitProp, ...restProps } = props;
+  const { lgOption, languageServer, onInit: onInitProp, onGoToFile, ...restProps } = props;
   const lgServer = languageServer || defaultLGServer;
 
   let editorId = '';
@@ -78,7 +79,8 @@ export function LgEditor(props: LGLSPEditorProps) {
           const languageClient = createLanguageClient(
             formatMessage('LG Language Client'),
             ['botbuilderlg'],
-            connection
+            connection,
+            onGoToFile
           );
           SendRequestWithRetry(languageClient, 'initializeDocuments', { lgOption, uri });
           const disposable = languageClient.start();

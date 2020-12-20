@@ -30,6 +30,7 @@ import { mergePropertiesManagedByRootBot } from './recoilModel/dispatchers/utils
 import languageStorage from './utils/languageStorage';
 
 const DesignPage = React.lazy(() => import('./pages/design/DesignPage'));
+const NewUX = React.lazy(() => import('./ux/Main'));
 const LUPage = React.lazy(() => import('./pages/language-understanding/LUPage'));
 const QnAPage = React.lazy(() => import('./pages/knowledge-base/QnAPage'));
 const LGPage = React.lazy(() => import('./pages/language-generation/LGPage'));
@@ -77,6 +78,7 @@ const Routes = (props) => {
             <DesignPage path="*" />
           </ProjectRouter>
           <ProjectRouter path="/bot/:projectId">
+            <NewUX path="ux/:dialogId/*" />
             <DesignPage path="dialogs/:dialogId/*" />
             <LUPage path="language-understanding/all/*" />
             <LUPage path="language-understanding/:dialogId/item/:luFileId/*" />

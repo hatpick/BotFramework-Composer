@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+
+import { basename } from 'path';
+
 import URI from 'vscode-uri';
-import { IConnection, TextDocuments } from 'vscode-languageserver';
+import { Definition, DefinitionLink, HandlerResult, IConnection, TextDocuments } from 'vscode-languageserver';
 import {
   TextDocument,
   Diagnostic,
@@ -13,7 +16,7 @@ import {
   DiagnosticSeverity,
   TextEdit,
 } from 'vscode-languageserver-types';
-import { TextDocumentPositionParams, DocumentOnTypeFormattingParams } from 'vscode-languageserver-protocol';
+import { TextDocumentPositionParams, DocumentOnTypeFormattingParams, Location } from 'vscode-languageserver-protocol';
 import get from 'lodash/get';
 import { filterTemplateDiagnostics, isValid, lgUtil } from '@bfc/indexers';
 import { MemoryResolver, ResolverResource, LgFile } from '@bfc/shared';
@@ -77,9 +80,11 @@ export class LGServer {
           documentOnTypeFormattingProvider: {
             firstTriggerCharacter: '\n',
           },
+          definitionProvider: true,
         },
       };
     });
+    this.connection.onDefinition(async (params) => await this.definition(params));
     this.connection.onCompletion(async (params) => await this.completion(params));
     this.connection.onHover(async (params) => await this.hover(params));
     this.connection.onDocumentOnTypeFormatting((docTypingParams) => this.docTypeFormat(docTypingParams));
@@ -452,6 +457,31 @@ export class LGServer {
     const completionList = this.matchingCompletionProperty(propertyList, this.memoryVariables);
 
     return completionList;
+  }
+
+  protected async definition(
+    params: TextDocumentPositionParams
+  ): Promise<Thenable<HandlerResult<Definition | DefinitionLink[] | undefined | null, void>>> {
+    const document = this.documents.get(params.textDocument.uri);
+    if (!document) {
+      return Promise.resolve(null);
+    }
+    const lgFile = await this.getLGDocument(document)?.index();
+    if (!lgFile) {
+      return Promise.resolve(null);
+    }
+
+    const wordRange = getRangeAtPosition(document, params.position);
+    const word = document.getText(wordRange);
+
+    if (/\.lg$/i.test(word)) {
+      const fileId = basename(word, '.lg');
+
+      return Location.create(fileId, {
+        start: params.position,
+        end: params.position,
+      });
+    }
   }
 
   protected async completion(params: TextDocumentPositionParams): Promise<Thenable<CompletionList | null>> {
