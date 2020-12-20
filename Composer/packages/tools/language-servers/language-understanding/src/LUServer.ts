@@ -384,9 +384,18 @@ export class LUServer {
     params: TextDocumentPositionParams
   ): Promise<Thenable<HandlerResult<Definition | DefinitionLink[] | undefined | null, void>>> {
     const document = this.documents.get(params.textDocument.uri);
+    const position = params.position;
+    const range = Range.create(position.line, 0, position.line, position.character);
+
     if (!document) {
       return Promise.resolve(null);
     }
+
+    const lineContent = document.getText(range).trim();
+    if (!lineContent.startsWith('[')) {
+      return Promise.resolve(null);
+    }
+
     const lgFile = await this.getLUDocument(document)?.index();
     if (!lgFile) {
       return Promise.resolve(null);

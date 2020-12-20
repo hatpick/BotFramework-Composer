@@ -67,7 +67,7 @@ export const Tree = <T,>(props: Props<T>) => {
   }, [nodes, selectedId]);
 
   React.useEffect(() => {
-    if (currentScrolledIdRef.current !== selectedId) {
+    if (selectedId && currentScrolledIdRef.current !== selectedId) {
       currentScrolledIdRef.current = selectedId;
       setTimeout(() => listRef.current?.scrollToItem(selectedIdx, 'smart'), 0);
     }
