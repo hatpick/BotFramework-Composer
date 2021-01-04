@@ -483,9 +483,13 @@ export class LGServer {
     const word = document.getText(wordRange);
 
     if (/\.lg$/i.test(word)) {
-      const fileId = basename(word, '.lg');
+      const fileId = basename(word);
 
-      return Location.create(fileId, {
+      if (!lgFile.imports.find((f) => f.id === fileId)) {
+        return Promise.resolve(null);
+      }
+
+      return Location.create(basename(word, '.lg'), {
         start: params.position,
         end: params.position,
       });

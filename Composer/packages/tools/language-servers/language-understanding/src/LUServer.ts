@@ -185,9 +185,9 @@ export class LUServer {
       }
 
       const id = fileId || uri;
-      const { intents: sections, diagnostics } = parse(content, id, luFeatures);
+      const { intents: sections, diagnostics, imports } = parse(content, id, luFeatures);
 
-      return { sections, diagnostics, content };
+      return { sections, diagnostics, content, imports };
     };
     const luDocument: LUDocument = {
       uri,
@@ -396,8 +396,8 @@ export class LUServer {
       return Promise.resolve(null);
     }
 
-    const lgFile = await this.getLUDocument(document)?.index();
-    if (!lgFile) {
+    const luFile = await this.getLUDocument(document)?.index();
+    if (!luFile) {
       return Promise.resolve(null);
     }
 
@@ -405,9 +405,13 @@ export class LUServer {
     const word = document.getText(wordRange);
 
     if (/\.lu$/i.test(word)) {
-      const fileId = basename(word, '.lu');
+      const fileId = basename(word);
 
-      return Location.create(fileId, {
+      if (!luFile.imports.find((f) => f.id === fileId)) {
+        return Promise.resolve(null);
+      }
+
+      return Location.create(basename(word, '.lu'), {
         start: params.position,
         end: params.position,
       });

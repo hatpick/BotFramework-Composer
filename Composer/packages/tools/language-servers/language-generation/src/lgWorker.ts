@@ -11,8 +11,8 @@ process.on('message', (msg: WorkerMsg) => {
     switch (msg.type) {
       case 'parse': {
         const { id, content, lgFiles } = msg.payload;
-        const { templates, allTemplates, diagnostics } = lgUtil.parse(id, content, lgFiles);
-        process.send?.({ id: msg.id, payload: { id, content, templates, allTemplates, diagnostics } });
+        const { templates, allTemplates, diagnostics, imports } = lgUtil.parse(id, content, lgFiles);
+        process.send?.({ id: msg.id, payload: { id, content, templates, allTemplates, diagnostics, imports } });
         break;
       }
 
