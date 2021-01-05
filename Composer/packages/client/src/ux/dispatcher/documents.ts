@@ -20,7 +20,7 @@ import {
 import { TreeItemData } from '../tree/types';
 import { getIconName } from '../tree/util';
 
-export const availableCommands = ['showAppSettings', 'showBotSettings'] as const;
+export const availableCommands = ['showAppSettings', 'showBotSettings', 'startBotProject'] as const;
 export type Command = typeof availableCommands[number];
 
 export const documentDispatcher = () => {

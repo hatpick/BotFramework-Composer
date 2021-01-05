@@ -7,6 +7,7 @@ import * as React from 'react';
 import styled from '@emotion/styled';
 import { IconButton } from 'office-ui-fabric-react/lib/Button';
 import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
+import { NeutralColors } from '@uifabric/fluent-theme';
 
 import { Tree } from './tree/Tree';
 import { TreeItemData } from './tree/types';
@@ -54,7 +55,7 @@ export const Explorer = <T,>(props: Props<T>) => {
   const { root, title, selectedId, onItemClick, onItemDoubleClick, onBotStart, onBotStop } = props;
 
   return (
-    <Stack verticalFill>
+    <Stack verticalFill styles={{ root: { background: NeutralColors.gray20 } }}>
       <ExplorerTopBar title={title} />
       <Stack.Item grow>
         <Tree

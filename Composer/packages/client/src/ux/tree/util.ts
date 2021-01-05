@@ -119,21 +119,14 @@ export const getIconName = (kind: TreeItemKind) => {
     case 'schema':
       iconName = 'OfficeFormsLogo';
       break;
-    // case 'schemaGroup':
-    //   iconName = 'FormLibrary';
-    //   break;
-    // case 'lgGroup':
-    //   iconName = 'ChatBot';
-    //   break;
-    // case 'qnaGroup':
-    //   iconName = 'OfficeChat';
-    //   break;
-    // case 'luGroup':
-    //   iconName = 'Group';
-    //   break;
   }
 
   return iconName;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const getIconColor = (kind?: TreeItemKind) => {
+  return '';
 };
 
 export const getActionMenuItems = (

@@ -9,7 +9,7 @@ import { FixedSizeList as List } from 'react-window';
 
 import { TreeItem } from './TreeItem';
 import { TreeItemData, TreeItemKind } from './types';
-import { DEFAULT_TREE_ITEM_HEIGHT, getActionMenuItems, getAllNodes, getIconName } from './util';
+import { DEFAULT_TREE_ITEM_HEIGHT, getActionMenuItems, getAllNodes, getIconName, getIconColor } from './util';
 
 const noneClickableKinds: TreeItemKind[] = [
   'root',
@@ -102,8 +102,11 @@ export const Tree = <T,>(props: Props<T>) => {
 
   const renderIcon = React.useCallback((itemKind: TreeItemKind) => {
     const iconName = getIconName(itemKind);
+    const iconColor = getIconColor(itemKind);
 
-    return iconName ? <Icon iconName={iconName} styles={{ root: { fontSize: 13, padding: '0 2px' } }} /> : null;
+    return iconName ? (
+      <Icon iconName={iconName} styles={{ root: { fontSize: 13, padding: '0 2px', color: iconColor } }} />
+    ) : null;
   }, []);
 
   const getActions = React.useCallback(

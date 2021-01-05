@@ -16,7 +16,7 @@ import startCase from 'lodash/startCase';
 
 import { useBotTree } from '../hooks/useBotTree';
 import { TreeItemData, TreeItemKind } from '../tree/types';
-import { getAllNodes, getIconName } from '../tree/util';
+import { getAllNodes, getIconColor, getIconName } from '../tree/util';
 import { availableCommands } from '../dispatcher/documents';
 
 import { QuickView } from './QuickView';
@@ -91,6 +91,7 @@ const QuickCommandItem = React.memo((props: QuickCommandItemProps) => {
   const { selected, onSelectItem, item, style } = props;
 
   const iconName = getIconName(item.item.kind);
+  const iconColor = getIconColor(item.item.kind);
 
   const nameMatches = item.matches?.filter((m) => m.key === 'data.label');
   const pathMatches = item.matches?.filter((m) => m.key === 'path');
@@ -124,7 +125,7 @@ const QuickCommandItem = React.memo((props: QuickCommandItemProps) => {
       verticalAlign="center"
       onClick={() => onSelectItem(item)}
     >
-      {iconName ? <Icon iconName={iconName} styles={{ root: { fontSize: 12 } }} /> : null}
+      {iconName ? <Icon iconName={iconName} styles={{ root: { fontSize: 12, color: iconColor } }} /> : null}
       <Stack horizontal styles={{ root: { overflowX: 'hidden' } }} tokens={{ childrenGap: 8 }} verticalAlign="center">
         {nameMatches?.length ? (
           renderLabel(nameMatches, {
@@ -209,7 +210,7 @@ export const QuickCommand = <T,>(props: Props<T>) => {
         findAllMatches: true,
         keys: ['path', 'data.label'],
       }),
-    [searchableNodes]
+    [searchableNodes, query]
   );
 
   const items = React.useMemo(() => {
@@ -269,6 +270,7 @@ export const QuickCommand = <T,>(props: Props<T>) => {
 
     return (
       <QuickCommandItem
+        key={item.item.id}
         item={item}
         path={itemPath}
         selected={selectedIdx === index}

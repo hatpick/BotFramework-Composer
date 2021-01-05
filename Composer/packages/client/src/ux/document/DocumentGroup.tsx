@@ -27,7 +27,7 @@ import grayComposerIcon from '../../images/grayComposerIcon.svg';
 import { Document } from '../document/Document';
 import { QuickCommand } from '../quick/QuickCommand';
 import { TreeItemData } from '../tree/types';
-import { countDescendants, DEFAULT_TREE_ITEM_HEIGHT, getAllNodes } from '../tree/util';
+import { countDescendants, DEFAULT_TREE_ITEM_HEIGHT, getAllNodes, getIconColor } from '../tree/util';
 import { Tree } from '../tree/Tree';
 
 import { activeDocumentIdState, documentIdsState, documentsSelector } from './documentState';
@@ -35,7 +35,7 @@ import { activeDocumentIdState, documentIdsState, documentsSelector } from './do
 const closeIconClassName = 'js-close-icon';
 
 const pivotStyles = classNamesFunction<IPivotStyleProps, IPivotStyles>()({
-  root: { overflowX: 'auto', backgroundColor: NeutralColors.gray10 },
+  root: { overflowX: 'auto', backgroundColor: 'rgb(243, 243, 243)' },
   link: {
     height: 36,
     lineHeight: '36px',
@@ -70,6 +70,14 @@ const pivotStyles = classNamesFunction<IPivotStyleProps, IPivotStyles>()({
     selectors: { '& > div': { height: '100%' } },
   },
   text: { color: NeutralColors.gray130, fontSize: 13 },
+});
+
+const iconCustomStyle = (color: string) => ({
+  selectors: {
+    '& .ms-Pivot-icon': {
+      color,
+    },
+  },
 });
 
 const closeIconStyles = classNamesFunction<IIconStyleProps, IIconStyles>()({
@@ -197,6 +205,7 @@ export const DocumentGroup = (props: Props) => {
       const documentId = linkProps?.itemKey || '';
       const active = documentId === activeDocumentId;
       const mode = documents[documentId]?.activationMode;
+      const iconColor = getIconColor(documents[documentId].item?.kind);
 
       return (
         <Stack
@@ -206,7 +215,10 @@ export const DocumentGroup = (props: Props) => {
           onClick={() => activate(documentId)}
           onDoubleClick={() => hardActivate(documentId)}
         >
-          <Stack.Item grow styles={{ root: { fontStyle: mode === 'soft' ? 'italic' : 'normal' } }}>
+          <Stack.Item
+            grow
+            styles={{ root: { fontStyle: mode === 'soft' ? 'italic' : 'normal', ...iconCustomStyle(iconColor) } }}
+          >
             {defaultRender?.(linkProps)}
           </Stack.Item>
           <Icon
@@ -285,7 +297,7 @@ export const DocumentGroup = (props: Props) => {
     <>
       <Stack
         verticalFill
-        styles={{ root: { backgroundColor: !documentIds.length ? NeutralColors.gray10 : 'transparent' } }}
+        styles={{ root: { backgroundColor: !documentIds.length ? NeutralColors.white : 'transparent' } }}
       >
         {documentIds.length ? (
           <Pivot

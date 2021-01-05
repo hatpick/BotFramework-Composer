@@ -13,10 +13,12 @@ import { TreeItemData } from './tree/types';
 
 type Props<T> = {
   root: TreeItemData<T>;
+  onBotStart: (botId: string) => void;
+  onBotStop: (botId: string) => void;
 };
 
 export const DocumentViewer = <T,>(props: Props<T>) => {
-  const { root } = props;
+  const { root, onBotStart } = props;
 
   const currentViewMode = useRecoilValue(documentViewModeState);
 
@@ -60,6 +62,11 @@ export const DocumentViewer = <T,>(props: Props<T>) => {
 
   const onExecuteCommand = React.useCallback(
     (item: TreeItemData<any>) => {
+      if ((item.id as Command) === 'startBotProject') {
+        onBotStart(root.botId);
+        return;
+      }
+
       executeCommand({ command: item.id as Command });
     },
     [executeCommand]

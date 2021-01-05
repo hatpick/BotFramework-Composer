@@ -186,7 +186,7 @@ const TreeItemComponent = <T,>(props: Props<T>) => {
     >
       {isCollapsible ? (
         <Icon
-          iconName={collapsed ? 'CaretSolidRight' : 'CaretSolidDown'}
+          iconName={collapsed ? 'ChevronRight' : 'ChevronDown'}
           styles={{
             root: {
               height: DEFAULT_TREE_ITEM_HEIGHT,
