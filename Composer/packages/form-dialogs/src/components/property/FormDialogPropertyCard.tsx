@@ -14,22 +14,13 @@ import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import * as React from 'react';
 import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 
+import { FormDialogPropertyPayload } from '../../atoms/types';
 import { nameRegex } from '../../utils/constants';
 import { FieldLabel } from '../common/FieldLabel';
-import {
-  ArrayPropertyPayload,
-  FormDialogProperty,
-  FormDialogPropertyKind,
-  FormDialogPropertyPayload,
-  IntegerPropertyPayload,
-  NumberPropertyPayload,
-  StringPropertyPayload,
-} from '../../atoms/types';
 
-import { NumberPropertyContent } from './NumberPropertyContent';
 import { PropertyTypeSelector } from './PropertyTypeSelector';
 import { RequiredPriorityIndicator } from './RequiredPriorityIndicator';
-import { StringPropertyContent } from './StringPropertyContent';
+import { PropertyCardData } from './types';
 
 const ContentRoot = styled.div(({ isValid }: { isValid: boolean }) => ({
   width: 720,
@@ -66,32 +57,11 @@ const ArrayCheckbox = styled(Checkbox)({
   justifyContent: 'flex-end',
 });
 
-const isNumerical = (kind: FormDialogPropertyKind) => kind === 'integer' || kind === 'number';
-
-const renderProperty = (
-  kind: FormDialogPropertyKind,
-  payload: FormDialogPropertyPayload,
-  onChangePayload: (payload: FormDialogPropertyPayload) => void
-): React.ReactNode => {
-  switch (kind) {
-    case 'string':
-      return <StringPropertyContent payload={payload as StringPropertyPayload} onChangePayload={onChangePayload} />;
-    case 'number':
-      return <NumberPropertyContent payload={payload as NumberPropertyPayload} onChangePayload={onChangePayload} />;
-    case 'integer':
-      return <NumberPropertyContent payload={payload as IntegerPropertyPayload} onChangePayload={onChangePayload} />;
-    case 'ref':
-      return null;
-    default:
-      throw new Error(`${kind} is not a known property to render!`);
-  }
-};
-
 export type FormDialogPropertyCardProps = {
   valid: boolean;
-  property: FormDialogProperty;
+  propertyCardData: PropertyCardData;
   dragHandleProps: DraggableProvidedDragHandleProps;
-  onChangeKind: (kind: FormDialogPropertyKind, payload: FormDialogPropertyPayload) => void;
+  onChangePropertyType: (propertyType: string) => void;
   onChangeName: (name: string) => void;
   onChangeArray: (isArray: boolean) => void;
   onChangePayload: (payload: FormDialogPropertyPayload) => void;
@@ -103,11 +73,10 @@ export type FormDialogPropertyCardProps = {
 export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardProps) => {
   const {
     valid,
-    property,
+    propertyCardData,
     dragHandleProps,
-    onChangeKind,
+    onChangePropertyType,
     onChangeName,
-    onChangePayload,
     onChangeArray,
     onActivateItem,
     onRemove,
@@ -115,8 +84,8 @@ export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardP
   } = props;
 
   // Indicates if the form in the card has been touched by the user.
-  const touchedRef = React.useRef(!!property.name);
-  const { id: propertyId, array, kind, name, payload, required } = property;
+  const touchedRef = React.useRef(!!propertyCardData.name);
+  const { id: propertyId, name, isArray, isRequired, propertyType } = propertyCardData;
 
   const rootElmRef = React.useRef<HTMLDivElement>();
   const propertyNameTooltipId = useId('propertyName');
@@ -212,7 +181,7 @@ export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardP
             tokens={{ childrenGap: 8 }}
             verticalAlign="center"
           >
-            <RequiredPriorityIndicator propertyId={propertyId} required={required} />
+            <RequiredPriorityIndicator propertyId={propertyId} required={isRequired} />
 
             <OverflowSet
               aria-label={formatMessage('Property actions')}
@@ -245,19 +214,17 @@ export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardP
           <Stack styles={{ root: { flex: 1 } }}>
             <PropertyTypeSelector
               data-is-focusable
-              isArray={kind === 'array'}
-              kind={kind === 'array' ? (payload as ArrayPropertyPayload).items.kind : kind}
-              payload={payload}
-              onChange={onChangeKind}
+              selectedPropertyType={propertyType}
+              onChange={onChangePropertyType}
             />
           </Stack>
           <Stack horizontal styles={{ root: { flex: 3 } }} tokens={{ childrenGap: 16 }} verticalAlign="center">
             <Stack.Item styles={{ root: { flex: 1 } }}>
-              {isNumerical(kind) ? renderProperty(kind, payload, onChangePayload) : null}
+              {/* {isNumerical(kind) ? renderProperty(kind, payload, onChangePayload) : null} */}
             </Stack.Item>
             <ArrayCheckbox
               aria-describedby={propertyArrayTooltipId}
-              checked={array}
+              checked={isArray}
               label={formatMessage('Accepts multiple values')}
               onChange={changeArray}
               onRenderLabel={onRenderLabel(
@@ -267,7 +234,7 @@ export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardP
             />
           </Stack>
         </Stack>
-        {!isNumerical(kind) ? renderProperty(kind, payload, onChangePayload) : null}
+        {/* {!isNumerical(kind) ? renderProperty(kind, payload, onChangePayload) : null} */}
       </ContentRoot>
     </FocusZone>
   );

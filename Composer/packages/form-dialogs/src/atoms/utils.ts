@@ -3,13 +3,14 @@
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import formatMessage from 'format-message';
+import { FormDialogSchemaTemplate } from '@bfc/shared';
 
+import { PropertyCardData } from '../components/property/types';
 import { generateId } from '../utils/base';
 import { nameRegex } from '../utils/constants';
 
 import {
-  builtInStringFormats,
+  BooleanPropertyPayload,
   FormDialogProperty,
   FormDialogPropertyKind,
   FormDialogPropertyPayload,
@@ -20,10 +21,76 @@ import {
   TypedPropertyPayload,
 } from './types';
 
+export const templateTypeToJsonSchemaType = (cardData: PropertyCardData, templates: FormDialogSchemaTemplate[]) => {
+  const template = templates.find((t) => t.id === cardData.propertyType);
+  const isRef = template.type === 'object' && template.$template;
+
+  if (isRef) {
+    return { kind: 'ref', ref: template.id };
+  }
+
+  const hasEnum = !!cardData.enum;
+  if (hasEnum) {
+    return { kind: 'string', enums: true };
+  }
+
+  return {
+    kind: cardData.propertyType,
+    format: cardData.format,
+  };
+};
+
+const $refToRef = ($ref: string) => {
+  const [, ref] = $ref.match(/template:(.*)\.schema/);
+  return ref;
+};
+
+export const jsonSchemaTypeToTemplateType = (
+  propertyJson: any,
+  templates: FormDialogSchemaTemplate[]
+): { propertyType: string; isArray?: boolean } => {
+  const jsonType = propertyJson.type ?? 'ref';
+
+  switch (jsonType ?? 'ref') {
+    case 'array': {
+      return { ...jsonSchemaTypeToTemplateType(propertyJson.items, templates), isArray: true };
+    }
+    case 'boolean':
+    case 'number':
+    case 'integer':
+      return { propertyType: jsonType };
+    case 'string': {
+      if (propertyJson.enum) {
+        return { propertyType: 'enum' };
+      }
+
+      if (propertyJson.format) {
+        const template = templates.find(
+          (template) => template.format === propertyJson.format && template.type === jsonType
+        );
+        return { propertyType: template.id };
+      }
+
+      return { propertyType: 'string' };
+    }
+    case 'ref': {
+      const ref = $refToRef(propertyJson.$ref);
+
+      const template = templates.find((template) => template.id === ref);
+
+      return { propertyType: template.id };
+    }
+    default:
+      throw new Error(`${jsonType} is not supported!`);
+  }
+};
+
 export const getDefaultPayload = (kind: FormDialogPropertyKind) => {
   switch (kind) {
     case 'ref':
       return <RefPropertyPayload>{ kind: 'ref' };
+    case 'boolean':
+      return <BooleanPropertyPayload>{ kind: 'boolean' };
     case 'string':
       return <StringPropertyPayload>{ kind: 'string', entities: [] };
     case 'number':
@@ -35,11 +102,6 @@ export const getDefaultPayload = (kind: FormDialogPropertyKind) => {
   }
 };
 
-const $refToRef = ($ref: string) => {
-  const [, ref] = $ref.match('template:(.*)');
-  return ref;
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const retrievePayload = (kind: FormDialogPropertyKind, payloadData: any, array = false): FormDialogPropertyPayload => {
   if (array) {
@@ -48,6 +110,8 @@ const retrievePayload = (kind: FormDialogPropertyKind, payloadData: any, array =
   switch (kind) {
     case 'ref':
       return <RefPropertyPayload>{ ref: $refToRef(payloadData.$ref) };
+    case 'boolean':
+      return <BooleanPropertyPayload>{ kind: 'boolean' };
     case 'string':
       return <StringPropertyPayload>{ kind: 'string', entities: payloadData.$entities, enums: payloadData.enum };
     case 'number':
@@ -67,35 +131,35 @@ const retrievePayload = (kind: FormDialogPropertyKind, payloadData: any, array =
   }
 };
 
-export const createSchemaStoreFromJson = (schemaName: string, jsonString: string) => {
+export const createSchemaStoreFromJson = (
+  name: string,
+  jsonString: string,
+  templates: FormDialogSchemaTemplate[]
+): { name: string; properties: PropertyCardData[] } => {
   const json = JSON.parse(jsonString);
 
-  const properties = json.properties || [];
+  const propertiesJson = json.properties || [];
   const requiredArray = <string[]>(json.required || []);
-  const examplesRecord = <Record<string, string[]>>(json.$examples || {});
 
-  const propertyStores = Object.keys(properties).map((name) => {
-    const propertyData = properties[name];
+  const properties = Object.keys(propertiesJson).map((name) => {
+    const propertyJson = propertiesJson[name];
 
-    const propertyType = propertyData?.type || 'ref';
-    const array = propertyType === 'array';
-    const payload = retrievePayload(propertyType, propertyData, array);
-    const kind = <FormDialogPropertyKind>(propertyType === 'array' ? payload.kind || 'ref' : propertyType);
-    const required = requiredArray.indexOf(name) !== -1;
-    const examples = examplesRecord[name] || [];
+    const { isArray, propertyType } = jsonSchemaTypeToTemplateType(propertyJson, templates);
+    const isRequired = requiredArray.includes(name);
+
+    delete propertyJson.type;
 
     return {
       id: generateId(),
       name,
-      kind,
-      required,
-      examples,
-      array,
-      payload,
+      propertyType,
+      isRequired,
+      isArray: !!isArray,
+      ...propertyJson,
     };
   });
 
-  return { name: schemaName, properties: propertyStores };
+  return { name, properties };
 };
 
 const findFirstMissingIndex = (arr: number[], start: number, end: number): number => {
@@ -216,6 +280,11 @@ export const spreadSchemaPropertyStore = (property: FormDialogProperty) => {
   switch (property.kind) {
     case 'ref':
       return spreadRefSchemaProperty(<RefPropertyPayload>property.payload);
+    case 'boolean': {
+      return {
+        type: property.kind,
+      };
+    }
     case 'string':
       return {
         type: property.kind,
@@ -265,28 +334,4 @@ export const validateSchemaPropertyStore = (property: FormDialogProperty) => {
   }
 
   return !!(payloadValid && property.name && nameRegex.test(property.name));
-};
-
-export const getPropertyTypeDisplayName = (property: FormDialogProperty) => {
-  switch (property.kind) {
-    case 'number':
-      return formatMessage('number');
-    case 'integer':
-      return formatMessage('integer');
-    case 'ref': {
-      const refPayload = property.payload as RefPropertyPayload;
-      return refPayload.ref.split('.')[0];
-    }
-    default:
-    case 'string': {
-      const stringPayload = property.payload as StringPropertyPayload;
-      if (stringPayload.enums) {
-        return formatMessage('list - {count} values', { count: stringPayload.enums.length });
-      }
-
-      return stringPayload.format
-        ? builtInStringFormats.find((f) => f.value === stringPayload.format).displayName
-        : formatMessage('any string');
-    }
-  }
 };

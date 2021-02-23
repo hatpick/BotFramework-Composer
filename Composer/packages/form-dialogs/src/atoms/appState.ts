@@ -3,7 +3,10 @@
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { FormDialogSchemaTemplate } from '@bfc/shared';
 import { atom, atomFamily, RecoilState, selector, selectorFamily } from 'recoil';
+
+import { PropertyCardData } from '../components/property/types';
 
 import { FormDialogProperty, FormDialogSchema } from './types';
 import { spreadSchemaPropertyStore, validateSchemaPropertyStore } from './utils';
@@ -36,6 +39,17 @@ export const formDialogPropertyAtom = atomFamily<FormDialogProperty, string>({
     required: true,
     array: false,
     examples: [],
+  }),
+});
+
+export const propertyCardDataAtom = atomFamily<PropertyCardData, string>({
+  key: 'PropertyCardDataAtom',
+  default: (id) => ({
+    id,
+    name: '',
+    isArray: false,
+    isRequired: true,
+    propertyType: 'string',
   }),
 });
 
@@ -143,7 +157,7 @@ export const formDialogSchemaJsonSelector = selector({
 /**
  * This atom represents the list of the available templates.
  */
-export const formDialogTemplatesAtom = atom<string[]>({
+export const formDialogTemplatesAtom = atom<FormDialogSchemaTemplate[]>({
   key: 'FormDialogTemplatesAtom',
   default: [],
 });

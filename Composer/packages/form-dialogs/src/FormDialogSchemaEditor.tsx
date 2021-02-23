@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { FormDialogSchemaTemplate } from '@bfc/shared';
 import * as React from 'react';
 import { useRecoilValue } from 'recoil';
 // eslint-disable-next-line @typescript-eslint/camelcase
@@ -31,7 +32,7 @@ export type FormDialogSchemaEditorProps = {
   /**
    * Record of available schema templates.
    */
-  templates?: string[];
+  templates?: FormDialogSchemaTemplate[];
   /**
    * Indicates of caller is running generation logic.
    */
@@ -67,7 +68,7 @@ const InternalFormDialogSchemaEditor = React.memo((props: FormDialogSchemaEditor
 
   React.useEffect(() => {
     importSchemaString(schema);
-  }, [editorId]);
+  }, [editorId, templates]);
 
   const startOver = React.useCallback(() => {
     reset({ name: schema.id });
