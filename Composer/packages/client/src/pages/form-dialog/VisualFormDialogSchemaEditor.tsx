@@ -3,7 +3,7 @@
 
 import { JsonEditor } from '@bfc/code-editor';
 import { FormDialogSchemaEditor } from '@bfc/form-dialogs';
-import { FileExtensions } from '@bfc/shared';
+import { FileExtensions, FormDialogSchemaTemplate } from '@bfc/shared';
 import styled from '@emotion/styled';
 import { NeutralColors } from '@uifabric/fluent-theme';
 import formatMessage from 'format-message';
@@ -51,7 +51,7 @@ type Props = {
   projectId: string;
   schemaId: string;
   generationInProgress?: boolean;
-  templates: string[];
+  templates: FormDialogSchemaTemplate[];
   onChange: (id: string, content: string) => void;
   onGenerate: (schemaId: string) => void;
 };

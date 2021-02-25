@@ -9,7 +9,8 @@ export type RefPropertyPayload = TypedPropertyPayload & {
   ref: string;
 };
 
-type GenericPayloadData = Record<string, unknown>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type GenericPayloadData = Record<string, any>;
 
 export type TypedPropertyPayload = {
   kind: FormDialogPropertyKind;

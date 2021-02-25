@@ -11,14 +11,12 @@ import { nameRegex } from '../utils/constants';
 
 import {
   BooleanPropertyPayload,
-  FormDialogProperty,
   FormDialogPropertyKind,
   FormDialogPropertyPayload,
   IntegerPropertyPayload,
   NumberPropertyPayload,
   RefPropertyPayload,
   StringPropertyPayload,
-  TypedPropertyPayload,
 } from './types';
 
 export const templateTypeToJsonSchemaType = (cardData: PropertyCardData, templates: FormDialogSchemaTemplate[]) => {
@@ -182,19 +180,16 @@ export const getDuplicateName = (name: string, allNames: readonly string[]) => {
   }
 
   const getBestIndex = (origName: string) => {
-    const pattern = `${origName} - copy `;
-    const otherNames = allNames.filter((n) => n.startsWith(pattern) && n.endsWith(')'));
+    const pattern = `${origName}-copy([0-9])+`;
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    const regex = new RegExp(pattern);
+    const otherNames = allNames.filter((n) => regex.test(n));
     const indices: number[] = [];
     for (const otherName of otherNames) {
-      const idx = otherName.indexOf(pattern);
-      const openPIdx = otherName.indexOf('(', idx);
-      const closePIdx = otherName.length - 1;
-
       try {
-        if (openPIdx !== -1 && closePIdx !== -1) {
-          const otherIdx = parseInt(otherName.substring(openPIdx + 1, closePIdx), 10);
-          indices.push(otherIdx);
-        }
+        const { 1: otherIdxString } = otherName.match(regex);
+        const otherIdx = parseInt(otherIdxString);
+        indices.push(otherIdx);
       } catch {
         continue;
       }
@@ -212,126 +207,60 @@ export const getDuplicateName = (name: string, allNames: readonly string[]) => {
     return firstAvailableIdx === -1 ? maxIdx + 1 : firstAvailableIdx + 1;
   };
 
-  const cpIndex = name.indexOf(' - copy ');
+  const cpIndex = name.indexOf('-copy');
   const originalName = cpIndex === -1 ? name : name.substring(0, cpIndex);
 
   const bestIndex = getBestIndex(originalName);
 
-  return `${originalName} - copy (${bestIndex})`;
+  return `${originalName}-copy${bestIndex}`;
 };
 
 //----------------------------JSON spreading----------------------------
 
-const spreadEntities = (payload: TypedPropertyPayload) =>
-  payload?.entities?.length ? { $entities: payload.entities } : {};
-
-const spreadStringSchemaProperty = (payload: StringPropertyPayload) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const payloadJson: any = payload?.enums?.length ? { enum: payload.enums } : {};
-  if (payload.format) {
-    payloadJson.format = payload.format;
-  }
-
-  return payloadJson;
-};
-
-const spreadNumberSchemaProperty = (payload: NumberPropertyPayload | IntegerPropertyPayload) => {
-  return { minimum: payload.minimum, maximum: payload.maximum };
-};
-
-const spreadRefSchemaProperty = (payload: RefPropertyPayload) => ({ $ref: `template:${payload.ref}` });
-
-const spreadArraySchemaProperty = (payload: FormDialogPropertyPayload) => {
-  const helper = () => {
-    switch (payload.kind) {
-      case 'string': {
-        return {
-          type: 'string',
-          ...spreadStringSchemaProperty(<StringPropertyPayload>payload),
-        };
-      }
-      case 'number': {
-        return {
-          type: 'number',
-          ...spreadNumberSchemaProperty(<NumberPropertyPayload>payload),
-        };
-      }
-      case 'integer': {
-        return {
-          type: 'integer',
-          ...spreadNumberSchemaProperty(<IntegerPropertyPayload>payload),
-        };
-      }
-      default:
-      case 'ref':
-        return spreadRefSchemaProperty(<RefPropertyPayload>payload);
-    }
+const spreadCardDataNormal = (propertyType: string, cardValues: Record<string, any>) => {
+  return {
+    $ref: `template:${propertyType}.schema`,
+    ...cardValues,
   };
+};
+
+const spreadCardDataArray = (propertyType: string, cardValues: Record<string, any>) => {
   return {
     type: 'array',
-    items: helper(),
+    items: spreadCardDataNormal(propertyType, cardValues),
   };
 };
 
-export const spreadSchemaPropertyStore = (property: FormDialogProperty) => {
-  if (property.array) {
-    return spreadArraySchemaProperty(property.payload);
+export const spreadCardData = (cardData: PropertyCardData) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, isArray, isRequired, propertyType, name, ...cardValues } = cardData;
+
+  if (isArray) {
+    return spreadCardDataArray(propertyType, cardValues);
   }
-  switch (property.kind) {
-    case 'ref':
-      return spreadRefSchemaProperty(<RefPropertyPayload>property.payload);
-    case 'boolean': {
-      return {
-        type: property.kind,
-      };
-    }
-    case 'string':
-      return {
-        type: property.kind,
-        ...spreadEntities(<TypedPropertyPayload>property.payload),
-        ...spreadStringSchemaProperty(<StringPropertyPayload>property.payload),
-      };
-    case 'number':
-      return {
-        type: property.kind,
-        ...spreadEntities(<TypedPropertyPayload>property.payload),
-        ...spreadNumberSchemaProperty(<NumberPropertyPayload>property.payload),
-      };
-    case 'integer':
-      return {
-        type: property.kind,
-        ...spreadEntities(<TypedPropertyPayload>property.payload),
-        ...spreadNumberSchemaProperty(<IntegerPropertyPayload>property.payload),
-      };
-    default:
-      throw new Error(`Property type: "${property.kind}" is not supported!`);
-  }
+
+  return spreadCardDataNormal(propertyType, cardValues);
 };
 
 //----------------------------JSON validation----------------------------
 
-export const validateSchemaPropertyStore = (property: FormDialogProperty) => {
-  let payloadValid = false;
-  switch (property.kind) {
-    case 'ref':
-      payloadValid = !!(<RefPropertyPayload>property.payload).ref;
-      break;
-    case 'string': {
-      const stringPayload = <StringPropertyPayload>property.payload;
-      payloadValid = !stringPayload.enums || !!stringPayload.enums.length;
-      break;
-    }
-    case 'number': {
-      const numberPayload = <NumberPropertyPayload>property.payload;
-      payloadValid = !numberPayload.minimum || !numberPayload.maximum || numberPayload.minimum <= numberPayload.maximum;
-      break;
-    }
-    case 'integer': {
-      const numberPayload = <IntegerPropertyPayload>property.payload;
-      payloadValid = !numberPayload.minimum || !numberPayload.maximum || numberPayload.minimum <= numberPayload.maximum;
-      break;
+// For now we assume all the values are optional
+const shouldValidateData = false;
+export const validateSchemaPropertyStore = (cardData: PropertyCardData, templates: FormDialogSchemaTemplate[]) => {
+  let dataValid = true;
+  if (shouldValidateData) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, isArray, isRequired, name, propertyType, ...cardValues } = cardData;
+    const template = templates.find((t) => t.id === propertyType);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { title, description, array, $examples, ...templateVariables } = template.$generator;
+
+    for (const variable of Object.keys(templateVariables)) {
+      if (cardValues[variable] === undefined) {
+        dataValid = false;
+      }
     }
   }
 
-  return !!(payloadValid && property.name && nameRegex.test(property.name));
+  return dataValid && cardData.name && nameRegex.test(cardData.name);
 };

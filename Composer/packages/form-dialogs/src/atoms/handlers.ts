@@ -23,8 +23,15 @@ import { createSchemaStoreFromJson, getDuplicateName } from './utils';
 
 const getHandlers = () => {
   const importSchemaString = useRecoilCallback(
-    ({ set, snapshot }) => async ({ id, content }: { id: string; content: string }) => {
-      const templates = await snapshot.getPromise(formDialogTemplatesAtom);
+    ({ set }) => async ({
+      id,
+      content,
+      templates,
+    }: {
+      id: string;
+      content: string;
+      templates: FormDialogSchemaTemplate[];
+    }) => {
       const schema = createSchemaStoreFromJson(id, content, templates);
 
       set(formDialogSchemaAtom, {
@@ -37,9 +44,11 @@ const getHandlers = () => {
     }
   );
 
-  const importSchema = useRecoilCallback(() => async ({ id, file }: { id: string; file: File }) => {
+  const importSchema = useRecoilCallback(({ snapshot }) => async ({ id, file }: { id: string; file: File }) => {
+    const templates = await snapshot.getPromise(formDialogTemplatesAtom);
     const content = await readFileContent(file);
-    importSchemaString({ id, content });
+
+    importSchemaString({ id, content, templates });
   });
 
   const activatePropertyId = useRecoilCallback(({ set }) => ({ id }: { id: string }) => {
@@ -84,7 +93,7 @@ const getHandlers = () => {
   });
 
   const changePropertyCardData = useRecoilCallback(
-    ({ set }) => ({ id, data }: { id: string; data: Record<string, unknown> }) => {
+    ({ set }) => ({ id, data }: { id: string; data: Record<string, any> }) => {
       set(propertyCardDataAtom(id), (currentPropertyCardData) => {
         return { ...currentPropertyCardData, ...data };
       });
@@ -155,10 +164,10 @@ const getHandlers = () => {
 
     set(formDialogSchemaAtom, (currentSchema) => ({
       ...currentSchema,
-      requiredPropertyIds: property.required
+      requiredPropertyIds: property.isRequired
         ? currentSchema.requiredPropertyIds.filter((pId) => pId !== id)
         : currentSchema.requiredPropertyIds,
-      optionalPropertyIds: !property.required
+      optionalPropertyIds: !property.isRequired
         ? currentSchema.optionalPropertyIds.filter((pId) => pId !== id)
         : currentSchema.optionalPropertyIds,
     }));
@@ -180,12 +189,12 @@ const getHandlers = () => {
     const name = getDuplicateName(propertyCardData.name, propertyNames);
 
     set(formDialogSchemaAtom, (currentSchema) => {
-      const propertyIds = (propertyCardData.required
+      const propertyIds = (propertyCardData.isRequired
         ? currentSchema.requiredPropertyIds
         : currentSchema.optionalPropertyIds
       ).slice();
 
-      if (propertyCardData.required) {
+      if (propertyCardData.isRequired) {
         return { ...currentSchema, requiredPropertyIds: [...propertyIds, newId] };
       } else {
         return { ...currentSchema, optionalPropertyIds: [...propertyIds, newId] };

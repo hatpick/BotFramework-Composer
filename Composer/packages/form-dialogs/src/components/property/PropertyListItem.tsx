@@ -21,7 +21,6 @@ import {
   propertyCardDataAtom,
 } from '../../atoms/appState';
 import { useHandlers } from '../../atoms/handlers';
-import { FormDialogPropertyPayload } from '../../atoms/types';
 
 import { FormDialogPropertyCard } from './FormDialogPropertyCard';
 import { RequiredPriorityIndicator } from './RequiredPriorityIndicator';
@@ -165,9 +164,9 @@ export const PropertyListItem = React.memo((props: Props) => {
     [changePropertyName, propertyId]
   );
 
-  const onChangePayload = React.useCallback(
-    (payload: FormDialogPropertyPayload) => {
-      changePropertyCardData({ id: propertyId, data: payload });
+  const onChangeData = React.useCallback(
+    (data: Record<string, any>) => {
+      changePropertyCardData({ id: propertyId, data });
     },
     [changePropertyCardData, propertyId]
   );
@@ -214,8 +213,8 @@ export const PropertyListItem = React.memo((props: Props) => {
                 valid={valid}
                 onActivateItem={onActivateItem}
                 onChangeArray={onChangeArray}
+                onChangeData={onChangeData}
                 onChangeName={onChangePropertyName}
-                onChangePayload={onChangePayload}
                 onChangePropertyType={onChangePropertyType}
                 onDuplicate={onDuplicate}
                 onRemove={onRemove}

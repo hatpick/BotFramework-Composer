@@ -3,9 +3,8 @@
 
 import { FormDialogSchemaTemplate } from '@bfc/shared';
 import * as React from 'react';
-import { useRecoilValue } from 'recoil';
 // eslint-disable-next-line @typescript-eslint/camelcase
-import { RecoilRoot, useRecoilTransactionObserver_UNSTABLE } from 'recoil';
+import { RecoilRoot, useRecoilTransactionObserver_UNSTABLE, useRecoilValue } from 'recoil';
 
 import { formDialogSchemaJsonSelector, trackedAtomsSelector } from './atoms/appState';
 import { useHandlers } from './atoms/handlers';
@@ -67,7 +66,9 @@ const InternalFormDialogSchemaEditor = React.memo((props: FormDialogSchemaEditor
   }, [templates]);
 
   React.useEffect(() => {
-    importSchemaString(schema);
+    if (templates.length) {
+      importSchemaString({ ...schema, templates });
+    }
   }, [editorId, templates]);
 
   const startOver = React.useCallback(() => {

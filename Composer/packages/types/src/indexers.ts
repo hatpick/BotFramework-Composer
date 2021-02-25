@@ -292,7 +292,7 @@ export type FormDialogSchemaTemplate = {
   $global: boolean;
   $template?: string;
   format?: string;
-  $generator: Record<string, unknown> & {
+  $generator: Record<string, any> & {
     title: string;
     description: string;
   };

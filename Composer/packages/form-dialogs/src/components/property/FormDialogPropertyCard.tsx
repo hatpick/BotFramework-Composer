@@ -13,11 +13,13 @@ import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import * as React from 'react';
 import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
+import { useRecoilValue } from 'recoil';
 
-import { FormDialogPropertyPayload } from '../../atoms/types';
+import { formDialogTemplatesAtom } from '../../atoms/appState';
 import { nameRegex } from '../../utils/constants';
 import { FieldLabel } from '../common/FieldLabel';
 
+import { PropertyCardContent } from './PropertyCardContent';
 import { PropertyTypeSelector } from './PropertyTypeSelector';
 import { RequiredPriorityIndicator } from './RequiredPriorityIndicator';
 import { PropertyCardData } from './types';
@@ -52,9 +54,7 @@ const ContentRoot = styled.div(({ isValid }: { isValid: boolean }) => ({
 }));
 
 const ArrayCheckbox = styled(Checkbox)({
-  flex: 1,
   marginTop: 28,
-  justifyContent: 'flex-end',
 });
 
 export type FormDialogPropertyCardProps = {
@@ -64,7 +64,7 @@ export type FormDialogPropertyCardProps = {
   onChangePropertyType: (propertyType: string) => void;
   onChangeName: (name: string) => void;
   onChangeArray: (isArray: boolean) => void;
-  onChangePayload: (payload: FormDialogPropertyPayload) => void;
+  onChangeData: (data: Record<string, any>) => void;
   onActivateItem: (propertyId: string) => void;
   onRemove: () => void;
   onDuplicate: () => void;
@@ -81,11 +81,18 @@ export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardP
     onActivateItem,
     onRemove,
     onDuplicate,
+    onChangeData,
   } = props;
+
+  const templates = useRecoilValue(formDialogTemplatesAtom);
+  const selectedTemplate = React.useMemo(() => templates.find((t) => t.id === propertyCardData.propertyType), [
+    propertyCardData,
+    templates,
+  ]);
 
   // Indicates if the form in the card has been touched by the user.
   const touchedRef = React.useRef(!!propertyCardData.name);
-  const { id: propertyId, name, isArray, isRequired, propertyType } = propertyCardData;
+  const { id: propertyId, name, isArray, isRequired, propertyType, ...cardValues } = propertyCardData;
 
   const rootElmRef = React.useRef<HTMLDivElement>();
   const propertyNameTooltipId = useId('propertyName');
@@ -210,31 +217,45 @@ export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardP
             />
           </Stack>
         </Stack>
-        <Stack horizontal tokens={{ childrenGap: 16 }}>
-          <Stack styles={{ root: { flex: 1 } }}>
+        <Stack horizontal tokens={{ childrenGap: 16 }} verticalAlign="center">
+          <Stack styles={{ root: { flex: 1 } }} verticalAlign="center">
             <PropertyTypeSelector
               data-is-focusable
               selectedPropertyType={propertyType}
               onChange={onChangePropertyType}
             />
           </Stack>
-          <Stack horizontal styles={{ root: { flex: 3 } }} tokens={{ childrenGap: 16 }} verticalAlign="center">
-            <Stack.Item styles={{ root: { flex: 1 } }}>
-              {/* {isNumerical(kind) ? renderProperty(kind, payload, onChangePayload) : null} */}
-            </Stack.Item>
-            <ArrayCheckbox
-              aria-describedby={propertyArrayTooltipId}
-              checked={isArray}
-              label={formatMessage('Accepts multiple values')}
-              onChange={changeArray}
-              onRenderLabel={onRenderLabel(
-                formatMessage('This option allows your users to give multiple values for this property.'),
-                propertyArrayTooltipId
-              )}
-            />
+          <Stack styles={{ root: { flex: 1 } }} verticalAlign="center">
+            {selectedTemplate.$generator.array && (
+              <ArrayCheckbox
+                aria-describedby={propertyArrayTooltipId}
+                checked={isArray}
+                label={formatMessage('Accepts multiple values')}
+                onChange={changeArray}
+                onRenderLabel={onRenderLabel(
+                  formatMessage('This option allows your users to give multiple values for this property.'),
+                  `${selectedTemplate.id}-array`
+                )}
+              />
+            )}
+          </Stack>
+          <Stack styles={{ root: { flex: 1 } }} verticalAlign="center">
+            {selectedTemplate?.$generator.array?.uniqueItems && (
+              <ArrayCheckbox
+                defaultChecked={selectedTemplate?.$generator.array?.uniqueItems}
+                disabled={!isArray}
+                label={selectedTemplate?.$generator.array?.uniqueItems.title}
+                onRenderLabel={onRenderLabel(
+                  selectedTemplate?.$generator.array?.uniqueItems.description,
+                  `${selectedTemplate.id}-unique`
+                )}
+              />
+            )}
           </Stack>
         </Stack>
-        {/* {!isNumerical(kind) ? renderProperty(kind, payload, onChangePayload) : null} */}
+        {selectedTemplate && (
+          <PropertyCardContent cardValues={cardValues} template={selectedTemplate} onDataChange={onChangeData} />
+        )}
       </ContentRoot>
     </FocusZone>
   );

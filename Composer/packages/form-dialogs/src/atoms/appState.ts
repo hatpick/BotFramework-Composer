@@ -8,10 +8,18 @@ import { atom, atomFamily, RecoilState, selector, selectorFamily } from 'recoil'
 
 import { PropertyCardData } from '../components/property/types';
 
-import { FormDialogProperty, FormDialogSchema } from './types';
-import { spreadSchemaPropertyStore, validateSchemaPropertyStore } from './utils';
+import { FormDialogSchema } from './types';
+import { spreadCardData, validateSchemaPropertyStore } from './utils';
 
 const schemaDraftUrl = 'http://json-schema.org/draft-07/schema';
+
+/**
+ * This atom represents the list of the available templates.
+ */
+export const formDialogTemplatesAtom = atom<FormDialogSchemaTemplate[]>({
+  key: 'FormDialogTemplatesAtom',
+  default: [],
+});
 
 /**
  * This atom represents a form dialog schema.
@@ -27,21 +35,8 @@ export const formDialogSchemaAtom = atom<FormDialogSchema>({
 });
 
 /**
- * This atom family represent a form dialog schema property.
+ * This atom family represent a form dialog schema property card data.
  */
-export const formDialogPropertyAtom = atomFamily<FormDialogProperty, string>({
-  key: 'FormDialogPropertyAtom',
-  default: (id) => ({
-    id,
-    name: '',
-    kind: 'string',
-    payload: { kind: 'string' },
-    required: true,
-    array: false,
-    examples: [],
-  }),
-});
-
 export const propertyCardDataAtom = atomFamily<PropertyCardData, string>({
   key: 'PropertyCardDataAtom',
   default: (id) => ({
@@ -71,7 +66,7 @@ export const formDialogSchemaPropertyNamesSelector = selector<string[]>({
   key: 'FormDialogSchemaPropertyNamesSelector',
   get: ({ get }) => {
     const propertyIds = get(allFormDialogPropertyIdsSelector);
-    return propertyIds.map((pId) => get(formDialogPropertyAtom(pId)).name);
+    return propertyIds.map((pId) => get(propertyCardDataAtom(pId)).name);
   },
 });
 
@@ -81,8 +76,8 @@ export const formDialogSchemaPropertyNamesSelector = selector<string[]>({
 export const formDialogPropertyJsonSelector = selectorFamily<object, string>({
   key: 'FormDialogPropertyJsonSelector',
   get: (id) => ({ get }) => {
-    const schemaPropertyStore = get(formDialogPropertyAtom(id));
-    return spreadSchemaPropertyStore(schemaPropertyStore);
+    const cardData = get(propertyCardDataAtom(id));
+    return spreadCardData(cardData);
   },
 });
 
@@ -92,8 +87,9 @@ export const formDialogPropertyJsonSelector = selectorFamily<object, string>({
 export const formDialogPropertyValidSelector = selectorFamily<boolean, string>({
   key: 'FormDialogPropertyValidSelector',
   get: (id) => ({ get }) => {
-    const schemaPropertyStore = get(formDialogPropertyAtom(id));
-    return validateSchemaPropertyStore(schemaPropertyStore);
+    const templates = get(formDialogTemplatesAtom);
+    const cardData = get(propertyCardDataAtom(id));
+    return validateSchemaPropertyStore(cardData, templates);
   },
 });
 
@@ -115,7 +111,7 @@ export const formDialogSchemaJsonSelector = selector({
   key: 'FormDialogSchemaJsonSelector',
   get: ({ get }) => {
     const propertyIds = get(allFormDialogPropertyIdsSelector);
-    const schemaPropertyStores = propertyIds.map((pId) => get(formDialogPropertyAtom(pId)));
+    const propertyCards = propertyIds.map((pId) => get(propertyCardDataAtom(pId)));
 
     let jsonObject: object = {
       $schema: schemaDraftUrl,
@@ -123,43 +119,25 @@ export const formDialogSchemaJsonSelector = selector({
       $requires: ['standard.schema'],
     };
 
-    if (schemaPropertyStores.length) {
+    if (propertyCards.length) {
       jsonObject = {
         ...jsonObject,
         properties: propertyIds.reduce<Record<string, object>>((acc, propId, idx) => {
-          const property = schemaPropertyStores[idx];
+          const property = propertyCards[idx];
           acc[property.name] = get(formDialogPropertyJsonSelector(propId));
           return acc;
         }, <Record<string, object>>{}),
       };
     }
 
-    const required = schemaPropertyStores.filter((property) => property.required).map((property) => property.name);
-    const examples = schemaPropertyStores.reduce<Record<string, string[]>>((acc, property) => {
-      if (property.examples?.length) {
-        acc[property.name] = property.examples;
-      }
-      return acc;
-    }, <Record<string, string[]>>{});
+    const required = propertyCards.filter((property) => property.isRequired).map((property) => property.name);
 
     if (required.length) {
       jsonObject = { ...jsonObject, required };
     }
 
-    if (Object.keys(examples)?.length) {
-      jsonObject = { ...jsonObject, $examples: examples };
-    }
-
     return JSON.stringify(jsonObject, null, 2);
   },
-});
-
-/**
- * This atom represents the list of the available templates.
- */
-export const formDialogTemplatesAtom = atom<FormDialogSchemaTemplate[]>({
-  key: 'FormDialogTemplatesAtom',
-  default: [],
 });
 
 export const activePropertyIdAtom = atom<string>({
@@ -172,7 +150,6 @@ export const trackedAtomsSelector = selector<RecoilState<any>[]>({
   key: 'TrackedAtoms',
   get: ({ get }) => {
     const propIds = get(allFormDialogPropertyIdsSelector) || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return [formDialogSchemaAtom, activePropertyIdAtom, ...propIds.map((pId) => formDialogPropertyAtom(pId))];
+    return [formDialogSchemaAtom, activePropertyIdAtom, ...propIds.map((pId) => propertyCardDataAtom(pId))];
   },
 });
