@@ -11,8 +11,8 @@ import { Text } from 'office-ui-fabric-react/lib/Text';
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { FieldLabel } from '../common/FieldLabel';
-import { ValuePicker } from '../common/ValuePicker';
+import { FieldLabel } from '../../common/FieldLabel';
+import { ValuePicker } from '../../common/ValuePicker';
 
 const ValuePickerContainer = styled.div({
   display: 'flex',
@@ -87,7 +87,7 @@ type Props = {
   onChange: (exampleData: ExampleData) => void;
 };
 
-export const ExampleList = (props: Props) => {
+export const EnumExampleList = (props: Props) => {
   const { entityName, $localeGenerator, exampleData = {}, onChange } = props;
 
   const [activeRowIndex, setActiveRowIndex] = React.useState(-1);

@@ -12,7 +12,8 @@ import { formDialogLocale } from '../../atoms/appState';
 import { FieldLabel } from '../common/FieldLabel';
 import { ValuePicker } from '../common/ValuePicker';
 
-import { ExampleContent } from './ExampleContent';
+import { EnumExampleContent } from './examples/EnumExampleContent';
+import { StringExampleContent } from './examples/StringExampleContent';
 
 type Props = {
   propertyName: string;
@@ -93,13 +94,22 @@ export const PropertyCardContent = (props: Props) => {
           {renderField(variable, templateInfo[variable], cardValues[variable], formFieldChange(variable))}
         </Stack>
       ))}
-      {$examples && (
-        <ExampleContent
+      {$examples && template.id === 'enum' && (
+        <EnumExampleContent
           $examples={$examples}
           enums={(cardValues.enum ?? []) as string[]}
           exampleData={cardValues.$examples ?? {}}
           locale={locale}
           propertyName={propertyName}
+          onChange={formFieldChange('$examples')}
+        />
+      )}
+      {$examples && template.id === 'string' && (
+        <StringExampleContent
+          $examples={$examples}
+          exampleData={cardValues.$examples ?? {}}
+          locale={locale}
+          propertyType={template.id}
           onChange={formFieldChange('$examples')}
         />
       )}

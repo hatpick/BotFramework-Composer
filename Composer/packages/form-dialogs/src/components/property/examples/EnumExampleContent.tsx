@@ -7,10 +7,11 @@ import { IconButton } from 'office-ui-fabric-react/lib/Button';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import styled from '@emotion/styled';
 import { FluentTheme } from '@uifabric/fluent-theme';
+import formatMessage from 'format-message';
 
-import { FieldLabel } from '../common/FieldLabel';
+import { FieldLabel } from '../../common/FieldLabel';
 
-import { ExampleList } from './ExampleList';
+import { EnumExampleList } from './EnumExampleList';
 
 const Container = styled(Stack)(({ disabled }: { disabled: boolean }) => ({
   position: 'relative',
@@ -26,7 +27,7 @@ const Container = styled(Stack)(({ disabled }: { disabled: boolean }) => ({
         justifyContent: 'center',
         color: FluentTheme.palette.red,
         fontSize: FluentTheme.fonts.small.fontSize,
-        content: '"Please add a name to this property to enable adding examples"',
+        content: `${formatMessage('Please add a name to this property to enable adding examples')}`,
         zIndex: 1,
       }
     : null,
@@ -52,7 +53,7 @@ type Props = {
   onChange: (value: Record<string, Record<string, Record<string, string[]>>>) => void;
 };
 
-export const ExampleContent = (props: Props) => {
+export const EnumExampleContent = (props: Props) => {
   const {
     locale,
     propertyName = '',
@@ -84,7 +85,7 @@ export const ExampleContent = (props: Props) => {
           onClick={addLocale}
         />
       </Stack>
-      <ExampleList
+      <EnumExampleList
         $localeGenerator={rest.additionalProperties}
         entityName={entityName}
         exampleData={exampleData}

@@ -97,7 +97,7 @@ const getHandlers = () => {
         const currentName = currentPropertyCardData.name;
         const cardData = { ...currentPropertyCardData, name } as PropertyCardData;
 
-        if (cardData.$examples?.[locale]?.[`${currentName}Value`]) {
+        if (cardData.propertyType === 'enum' && cardData.$examples?.[locale]?.[`${currentName}Value`]) {
           const examples = cloneDeep(cardData.$examples);
           examples[locale][`${name}Value`] = { ...examples[locale][`${currentName}Value`] };
           delete examples[locale][`${currentName}Value`];
@@ -118,40 +118,42 @@ const getHandlers = () => {
         const hasEnum = !!data.enum?.length;
         const cardData = { ...currentPropertyCardData, ...data } as PropertyCardData;
 
-        if (hadEnum && currentPropertyCardData.$examples?.[locale]?.[`${currentPropertyCardData.name}Value`]) {
-          const examples = cloneDeep(cardData.$examples);
-          const newEnumList = cardData.enum as string[];
-          const currentEnumList = Object.keys(examples[locale][`${currentPropertyCardData.name}Value`]);
+        if (cardData.propertyType === 'enum') {
+          if (hadEnum && currentPropertyCardData.$examples?.[locale]?.[`${currentPropertyCardData.name}Value`]) {
+            const examples = cloneDeep(cardData.$examples);
+            const newEnumList = cardData.enum as string[];
+            const currentEnumList = Object.keys(examples[locale][`${currentPropertyCardData.name}Value`]);
 
-          newEnumList.forEach((e) => {
-            if (!examples[locale][`${currentPropertyCardData.name}Value`][e]) {
-              examples[locale][`${currentPropertyCardData.name}Value`][e] = [];
+            newEnumList.forEach((e) => {
+              if (!examples[locale][`${currentPropertyCardData.name}Value`][e]) {
+                examples[locale][`${currentPropertyCardData.name}Value`][e] = [];
+              }
+            });
+
+            currentEnumList.forEach((e) => {
+              if (!newEnumList.includes(e)) {
+                delete examples[locale][`${currentPropertyCardData.name}Value`][e];
+              }
+            });
+
+            if (!Object.keys(examples[locale][`${currentPropertyCardData.name}Value`]).length) {
+              delete examples[locale];
             }
-          });
 
-          currentEnumList.forEach((e) => {
-            if (!newEnumList.includes(e)) {
-              delete examples[locale][`${currentPropertyCardData.name}Value`][e];
-            }
-          });
+            cardData.$examples = examples;
+          } else if (!hadEnum && hasEnum) {
+            const newEnumList = cardData.enum;
+            const examples = {
+              [locale]: {
+                [`${currentPropertyCardData.name}Value`]: newEnumList.reduce((acc, e) => {
+                  acc[e] = [];
+                  return acc;
+                }, {}),
+              },
+            };
 
-          if (!Object.keys(examples[locale][`${currentPropertyCardData.name}Value`]).length) {
-            delete examples[locale];
+            cardData.$examples = examples;
           }
-
-          cardData.$examples = examples;
-        } else if (!hadEnum && hasEnum) {
-          const newEnumList = cardData.enum;
-          const examples = {
-            [locale]: {
-              [`${currentPropertyCardData.name}Value`]: newEnumList.reduce((acc, e) => {
-                acc[e] = [];
-                return acc;
-              }, {}),
-            },
-          };
-
-          cardData.$examples = examples;
         }
 
         return cardData;
