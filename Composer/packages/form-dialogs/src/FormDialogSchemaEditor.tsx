@@ -12,6 +12,7 @@ import { FormDialogPropertiesEditor } from './components/FormDialogPropertiesEdi
 import { UndoRoot } from './undo/UndoRoot';
 
 export type FormDialogSchemaEditorProps = {
+  locale: string;
   /**
    * Unique id for the visual editor.
    */
@@ -48,6 +49,7 @@ export type FormDialogSchemaEditorProps = {
 
 const InternalFormDialogSchemaEditor = React.memo((props: FormDialogSchemaEditorProps) => {
   const {
+    locale,
     editorId,
     schema,
     templates = [],
@@ -59,7 +61,13 @@ const InternalFormDialogSchemaEditor = React.memo((props: FormDialogSchemaEditor
   } = props;
 
   const trackedAtoms = useRecoilValue(trackedAtomsSelector);
-  const { setTemplates, reset, importSchemaString } = useHandlers();
+  const { setTemplates, reset, updateLocale, importSchemaString } = useHandlers();
+
+  React.useEffect(() => {
+    if (locale) {
+      updateLocale({ locale });
+    }
+  }, [locale]);
 
   React.useEffect(() => {
     setTemplates({ templates });

@@ -55,6 +55,7 @@ const ContentRoot = styled.div(({ isValid }: { isValid: boolean }) => ({
 
 const ArrayCheckbox = styled(Checkbox)({
   marginTop: 28,
+  alignSelf: 'flex-end',
 });
 
 export type FormDialogPropertyCardProps = {
@@ -225,36 +226,43 @@ export const FormDialogPropertyCard = React.memo((props: FormDialogPropertyCardP
               onChange={onChangePropertyType}
             />
           </Stack>
-          <Stack styles={{ root: { flex: 1 } }} verticalAlign="center">
-            {selectedTemplate.$generator.array && (
-              <ArrayCheckbox
-                aria-describedby={propertyArrayTooltipId}
-                checked={isArray}
-                label={formatMessage('Accepts multiple values')}
-                onChange={changeArray}
-                onRenderLabel={onRenderLabel(
-                  formatMessage('This option allows your users to give multiple values for this property.'),
-                  `${selectedTemplate.id}-array`
-                )}
-              />
-            )}
-          </Stack>
-          <Stack styles={{ root: { flex: 1 } }} verticalAlign="center">
-            {selectedTemplate?.$generator.array?.uniqueItems && (
-              <ArrayCheckbox
-                defaultChecked={selectedTemplate?.$generator.array?.uniqueItems}
-                disabled={!isArray}
-                label={selectedTemplate?.$generator.array?.uniqueItems.title}
-                onRenderLabel={onRenderLabel(
-                  selectedTemplate?.$generator.array?.uniqueItems.description,
-                  `${selectedTemplate.id}-unique`
-                )}
-              />
-            )}
+          <Stack horizontal styles={{ root: { flex: 2 } }} verticalAlign="center">
+            <Stack styles={{ root: { flex: 1 } }} verticalAlign="center">
+              {selectedTemplate.$generator.array && (
+                <ArrayCheckbox
+                  aria-describedby={propertyArrayTooltipId}
+                  checked={isArray}
+                  label={formatMessage('Accepts multiple values')}
+                  onChange={changeArray}
+                  onRenderLabel={onRenderLabel(
+                    formatMessage('This option allows your users to give multiple values for this property.'),
+                    `${selectedTemplate.id}-array`
+                  )}
+                />
+              )}
+            </Stack>
+            <Stack styles={{ root: { flex: 1 } }} verticalAlign="center">
+              {selectedTemplate?.$generator.array?.uniqueItems && (
+                <ArrayCheckbox
+                  defaultChecked={selectedTemplate?.$generator.array?.uniqueItems}
+                  disabled={!isArray}
+                  label={selectedTemplate?.$generator.array?.uniqueItems.title}
+                  onRenderLabel={onRenderLabel(
+                    selectedTemplate?.$generator.array?.uniqueItems.description,
+                    `${selectedTemplate.id}-unique`
+                  )}
+                />
+              )}
+            </Stack>
           </Stack>
         </Stack>
         {selectedTemplate && (
-          <PropertyCardContent cardValues={cardValues} template={selectedTemplate} onDataChange={onChangeData} />
+          <PropertyCardContent
+            cardValues={cardValues}
+            propertyName={propertyCardData.name}
+            template={selectedTemplate}
+            onDataChange={onChangeData}
+          />
         )}
       </ContentRoot>
     </FocusZone>

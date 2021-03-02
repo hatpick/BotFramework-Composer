@@ -9,16 +9,6 @@ import { PropertyCardData } from '../components/property/types';
 import { generateId } from '../utils/base';
 import { nameRegex } from '../utils/constants';
 
-import {
-  BooleanPropertyPayload,
-  FormDialogPropertyKind,
-  FormDialogPropertyPayload,
-  IntegerPropertyPayload,
-  NumberPropertyPayload,
-  RefPropertyPayload,
-  StringPropertyPayload,
-} from './types';
-
 export const templateTypeToJsonSchemaType = (cardData: PropertyCardData, templates: FormDialogSchemaTemplate[]) => {
   const template = templates.find((t) => t.id === cardData.propertyType);
   const isRef = template.type === 'object' && template.$template;
@@ -83,52 +73,6 @@ export const jsonSchemaTypeToTemplateType = (
   }
 };
 
-export const getDefaultPayload = (kind: FormDialogPropertyKind) => {
-  switch (kind) {
-    case 'ref':
-      return <RefPropertyPayload>{ kind: 'ref' };
-    case 'boolean':
-      return <BooleanPropertyPayload>{ kind: 'boolean' };
-    case 'string':
-      return <StringPropertyPayload>{ kind: 'string', entities: [] };
-    case 'number':
-      return <NumberPropertyPayload>{ kind: 'number', entities: [] };
-    case 'integer':
-      return <IntegerPropertyPayload>{ kind: 'integer', entities: [] };
-    default:
-      throw new Error(`Property type: "${kind}" is not supported!`);
-  }
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const retrievePayload = (kind: FormDialogPropertyKind, payloadData: any, array = false): FormDialogPropertyPayload => {
-  if (array) {
-    return retrievePayload(payloadData.items.type || 'ref', payloadData.items);
-  }
-  switch (kind) {
-    case 'ref':
-      return <RefPropertyPayload>{ ref: $refToRef(payloadData.$ref) };
-    case 'boolean':
-      return <BooleanPropertyPayload>{ kind: 'boolean' };
-    case 'string':
-      return <StringPropertyPayload>{ kind: 'string', entities: payloadData.$entities, enums: payloadData.enum };
-    case 'number':
-      return <NumberPropertyPayload>{
-        kind: 'number',
-        minimum: payloadData.minimum,
-        maximum: payloadData.maximum,
-      };
-    case 'integer':
-      return <IntegerPropertyPayload>{
-        kind: 'integer',
-        minimum: payloadData.minimum,
-        maximum: payloadData.maximum,
-      };
-    default:
-      throw new Error(`Property of type: ${kind} is not currently supported!`);
-  }
-};
-
 export const createSchemaStoreFromJson = (
   name: string,
   jsonString: string,
@@ -140,9 +84,10 @@ export const createSchemaStoreFromJson = (
   const requiredArray = <string[]>(json.required || []);
 
   const properties = Object.keys(propertiesJson).map((name) => {
-    const propertyJson = propertiesJson[name];
+    const { $examples, ...propertyJson } = propertiesJson[name];
 
     const { isArray, propertyType } = jsonSchemaTypeToTemplateType(propertyJson, templates);
+    const cardData = isArray ? propertyJson : propertyJson.items;
     const isRequired = requiredArray.includes(name);
 
     delete propertyJson.type;
@@ -153,7 +98,8 @@ export const createSchemaStoreFromJson = (
       propertyType,
       isRequired,
       isArray: !!isArray,
-      ...propertyJson,
+      $examples,
+      ...cardData,
     };
   });
 
@@ -218,6 +164,7 @@ export const getDuplicateName = (name: string, allNames: readonly string[]) => {
 //----------------------------JSON spreading----------------------------
 
 const spreadCardDataNormal = (propertyType: string, cardValues: Record<string, any>) => {
+  cardValues = cardValues.items ?? cardValues;
   return {
     $ref: `template:${propertyType}.schema`,
     ...cardValues,
@@ -225,21 +172,26 @@ const spreadCardDataNormal = (propertyType: string, cardValues: Record<string, a
 };
 
 const spreadCardDataArray = (propertyType: string, cardValues: Record<string, any>) => {
-  return {
-    type: 'array',
-    items: spreadCardDataNormal(propertyType, cardValues),
-  };
+  const wasArray = !!cardValues.items;
+
+  return wasArray
+    ? { type: 'array', ...cardValues }
+    : {
+        type: 'array',
+        items: spreadCardDataNormal(propertyType, cardValues),
+      };
 };
 
 export const spreadCardData = (cardData: PropertyCardData) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, isArray, isRequired, propertyType, name, ...cardValues } = cardData;
+  const { $examples, ...restData } = cardValues;
 
   if (isArray) {
-    return spreadCardDataArray(propertyType, cardValues);
+    return { ...spreadCardDataArray(propertyType, restData), $examples };
   }
 
-  return spreadCardDataNormal(propertyType, cardValues);
+  return { ...spreadCardDataNormal(propertyType, restData), $examples };
 };
 
 //----------------------------JSON validation----------------------------

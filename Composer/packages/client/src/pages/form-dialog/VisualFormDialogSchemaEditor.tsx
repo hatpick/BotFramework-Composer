@@ -13,7 +13,7 @@ import { classNamesFunction } from 'office-ui-fabric-react/lib/Utilities';
 import * as React from 'react';
 import { useRecoilValue } from 'recoil';
 
-import { formDialogSchemaState } from '../../recoilModel';
+import { formDialogSchemaState, localeState } from '../../recoilModel';
 import TelemetryClient from '../../telemetry/TelemetryClient';
 
 const Root = styled(Stack)<{
@@ -59,6 +59,7 @@ type Props = {
 export const VisualFormDialogSchemaEditor = React.memo((props: Props) => {
   const { projectId, schemaId, templates, onChange, onGenerate, generationInProgress = false } = props;
 
+  const locale = useRecoilValue(localeState(projectId));
   const schema = useRecoilValue(formDialogSchemaState({ projectId, schemaId }));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,6 +119,7 @@ export const VisualFormDialogSchemaEditor = React.memo((props: Props) => {
             allowUndo
             editorId={`${projectId}:${schema.id}`}
             isGenerating={generationInProgress}
+            locale={locale}
             schema={schema}
             schemaExtension={FileExtensions.FormDialogSchema}
             templates={templates}

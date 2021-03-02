@@ -6,11 +6,16 @@ import { ComboBox } from 'office-ui-fabric-react/lib/ComboBox';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import * as React from 'react';
+import { useRecoilValue } from 'recoil';
 
+import { formDialogLocale } from '../../atoms/appState';
 import { FieldLabel } from '../common/FieldLabel';
 import { ValuePicker } from '../common/ValuePicker';
 
+import { ExampleContent } from './ExampleContent';
+
 type Props = {
+  propertyName: string;
   template: FormDialogSchemaTemplate;
   cardValues: Record<string, any>;
   onDataChange: (data: Record<string, any>) => void;
@@ -71,9 +76,10 @@ const renderField = (variable: string, info: Record<string, any>, value: any, on
 };
 
 export const PropertyCardContent = (props: Props) => {
-  const { template, cardValues, onDataChange } = props;
+  const { propertyName, template, cardValues, onDataChange } = props;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { title, description, array, $examples, ...templateInfo } = template.$generator;
+  const locale = useRecoilValue(formDialogLocale);
 
   const formFieldChange = (variable: string) => (value: any) => {
     const newFormData = { ...cardValues, [variable]: value };
@@ -87,6 +93,16 @@ export const PropertyCardContent = (props: Props) => {
           {renderField(variable, templateInfo[variable], cardValues[variable], formFieldChange(variable))}
         </Stack>
       ))}
+      {$examples && (
+        <ExampleContent
+          $examples={$examples}
+          enums={(cardValues.enum ?? []) as string[]}
+          exampleData={cardValues.$examples ?? {}}
+          locale={locale}
+          propertyName={propertyName}
+          onChange={formFieldChange('$examples')}
+        />
+      )}
     </Stack>
   );
 };

@@ -6,13 +6,17 @@
 import { FormDialogSchemaTemplate } from '@bfc/shared';
 import * as React from 'react';
 import { useRecoilCallback } from 'recoil';
+import cloneDeep from 'lodash/cloneDeep';
 
+import { PropertyCardData } from '../components/property/types';
 import { generateId } from '../utils/base';
 import { readFileContent } from '../utils/file';
 
 import {
   activePropertyIdAtom,
   allFormDialogPropertyIdsSelector,
+  formDialogLocale,
+  formDialogLocale as formDialogLocaleAtom,
   formDialogSchemaAtom,
   formDialogSchemaPropertyNamesSelector,
   formDialogTemplatesAtom,
@@ -86,16 +90,71 @@ const getHandlers = () => {
     }
   );
 
-  const changePropertyName = useRecoilCallback(({ set }) => ({ id, name }: { id: string; name: string }) => {
-    set(propertyCardDataAtom(id), (currentPropertyCardData) => {
-      return { ...currentPropertyCardData, name };
-    });
-  });
+  const changePropertyName = useRecoilCallback(
+    ({ set, snapshot }) => async ({ id, name }: { id: string; name: string }) => {
+      const locale = await snapshot.getPromise(formDialogLocale);
+      set(propertyCardDataAtom(id), (currentPropertyCardData) => {
+        const currentName = currentPropertyCardData.name;
+        const cardData = { ...currentPropertyCardData, name } as PropertyCardData;
+
+        if (cardData.$examples?.[locale]?.[`${currentName}Value`]) {
+          const examples = cloneDeep(cardData.$examples);
+          examples[locale][`${name}Value`] = { ...examples[locale][`${currentName}Value`] };
+          delete examples[locale][`${currentName}Value`];
+
+          cardData.$examples = examples;
+        }
+
+        return cardData;
+      });
+    }
+  );
 
   const changePropertyCardData = useRecoilCallback(
-    ({ set }) => ({ id, data }: { id: string; data: Record<string, any> }) => {
+    ({ set, snapshot }) => async ({ id, data }: { id: string; data: Record<string, any> }) => {
+      const locale = await snapshot.getPromise(formDialogLocale);
       set(propertyCardDataAtom(id), (currentPropertyCardData) => {
-        return { ...currentPropertyCardData, ...data };
+        const hadEnum = !!currentPropertyCardData.enum?.length;
+        const hasEnum = !!data.enum?.length;
+        const cardData = { ...currentPropertyCardData, ...data } as PropertyCardData;
+
+        if (hadEnum && currentPropertyCardData.$examples?.[locale]?.[`${currentPropertyCardData.name}Value`]) {
+          const examples = cloneDeep(cardData.$examples);
+          const newEnumList = cardData.enum as string[];
+          const currentEnumList = Object.keys(examples[locale][`${currentPropertyCardData.name}Value`]);
+
+          newEnumList.forEach((e) => {
+            if (!examples[locale][`${currentPropertyCardData.name}Value`][e]) {
+              examples[locale][`${currentPropertyCardData.name}Value`][e] = [];
+            }
+          });
+
+          currentEnumList.forEach((e) => {
+            if (!newEnumList.includes(e)) {
+              delete examples[locale][`${currentPropertyCardData.name}Value`][e];
+            }
+          });
+
+          if (!Object.keys(examples[locale][`${currentPropertyCardData.name}Value`]).length) {
+            delete examples[locale];
+          }
+
+          cardData.$examples = examples;
+        } else if (!hadEnum && hasEnum) {
+          const newEnumList = cardData.enum;
+          const examples = {
+            [locale]: {
+              [`${currentPropertyCardData.name}Value`]: newEnumList.reduce((acc, e) => {
+                acc[e] = [];
+                return acc;
+              }, {}),
+            },
+          };
+
+          cardData.$examples = examples;
+        }
+
+        return cardData;
       });
     }
   );
@@ -201,7 +260,7 @@ const getHandlers = () => {
       }
     });
 
-    set(propertyCardDataAtom(newId), { ...propertyCardData, name, id: newId });
+    set(propertyCardDataAtom(newId), { ...cloneDeep(propertyCardData), name, id: newId });
     activatePropertyId({ id: newId });
   });
 
@@ -213,6 +272,10 @@ const getHandlers = () => {
 
   const setTemplates = useRecoilCallback(({ set }) => ({ templates }: { templates: FormDialogSchemaTemplate[] }) => {
     set(formDialogTemplatesAtom, templates);
+  });
+
+  const updateLocale = useRecoilCallback(({ set }) => ({ locale }: { locale: string }) => {
+    set(formDialogLocaleAtom, locale);
   });
 
   return {
@@ -229,6 +292,7 @@ const getHandlers = () => {
     moveProperty,
     importSchema,
     importSchemaString,
+    updateLocale,
   };
 };
 

@@ -14,6 +14,14 @@ import { spreadCardData, validateSchemaPropertyStore } from './utils';
 const schemaDraftUrl = 'http://json-schema.org/draft-07/schema';
 
 /**
+ * Locale
+ */
+export const formDialogLocale = atom<string>({
+  key: 'FormDialogLocale',
+  default: '',
+});
+
+/**
  * This atom represents the list of the available templates.
  */
 export const formDialogTemplatesAtom = atom<FormDialogSchemaTemplate[]>({
