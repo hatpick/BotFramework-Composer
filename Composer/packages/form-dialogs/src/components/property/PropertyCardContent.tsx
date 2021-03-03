@@ -29,6 +29,15 @@ const renderField = (variable: string, info: Record<string, any>, value: any, on
       <FieldLabel defaultRender={defaultRender(props)} helpText={helpText} tooltipId={tooltipId} />
     );
 
+  const convertValue = (value: string) => {
+    switch (info.type) {
+      case 'number':
+        return parseInt(value, 10);
+      default:
+        return value;
+    }
+  };
+
   switch (info.type) {
     case 'array':
       return (
@@ -69,7 +78,7 @@ const renderField = (variable: string, info: Record<string, any>, value: any, on
           label={info.title}
           type={info.type ?? 'text'}
           value={value}
-          onChange={(_, newValue) => onChange(newValue)}
+          onChange={(_, newValue) => onChange(convertValue(newValue))}
           onRenderLabel={renderLabel(info.description, variable)}
         />
       );

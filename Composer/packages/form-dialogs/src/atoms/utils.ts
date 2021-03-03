@@ -87,7 +87,7 @@ export const createSchemaStoreFromJson = (
     const { $examples, ...propertyJson } = propertiesJson[name];
 
     const { isArray, propertyType } = jsonSchemaTypeToTemplateType(propertyJson, templates);
-    const cardData = isArray ? propertyJson : propertyJson.items;
+    const cardData = isArray ? propertyJson.items : propertyJson;
     const isRequired = requiredArray.includes(name);
 
     delete propertyJson.type;
