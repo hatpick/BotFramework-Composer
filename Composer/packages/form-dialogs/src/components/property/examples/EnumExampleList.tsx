@@ -95,14 +95,14 @@ export const EnumExampleList = (props: Props) => {
   const itemsRecord = React.useMemo<Record<string, ListItemData[]>>(() => {
     return Object.keys(exampleData).reduce((a, locale) => {
       a[locale] =
-        Object.keys(exampleData[locale]?.[entityName])?.reduce<ListItemData[]>((b, word) => {
+        Object.keys(exampleData[locale]?.[entityName])?.reduce((b, word) => {
           b.push({ word, synonyms: exampleData[locale]?.[entityName]?.[word] ?? [] });
           return b;
         }, [] as ListItemData[]) ?? [];
 
       return a;
     }, {} as Record<string, ListItemData[]>);
-  }, [exampleData]);
+  }, [exampleData, entityName]);
 
   const rowChange = (locale: string, idx: number) => (word: string, synonyms: string[]) => {
     const newExampleData = cloneDeep(exampleData);

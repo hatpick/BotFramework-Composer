@@ -66,7 +66,7 @@ export const StringExampleContent = (props: Props) => {
       exampleData[currentLocale] && Object.keys(exampleData[currentLocale])
         ? Object.keys(exampleData[currentLocale])[0]
         : propertyType,
-    [exampleData, propertyType]
+    [exampleData, propertyType, currentLocale]
   );
 
   const addLocale = () => {

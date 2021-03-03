@@ -227,9 +227,6 @@
   "advanced_events_2cbfa47d": {
     "message": "Advanced Events"
   },
-  "advanced_options_4dcc8385": {
-    "message": "Advanced options"
-  },
   "advanced_settings_view_json_b83638b4": {
     "message": "Advanced Settings View (json)"
   },
@@ -284,9 +281,6 @@
   "any_or_expression_acad7d37": {
     "message": "Any or expression"
   },
-  "any_string_f22dc2e1": {
-    "message": "any string"
-  },
   "app_id_password_424f613a": {
     "message": "App Id / Password"
   },
@@ -307,6 +301,9 @@
   },
   "are_you_sure_you_want_to_exit_the_onboarding_produ_c2de1b23": {
     "message": "Are you sure you want to exit the Onboarding Product Tour? You can restart the tour in the onboarding settings."
+  },
+  "are_you_sure_you_want_to_remove_examples_for_local_3a4742d4": {
+    "message": "Are you sure you want to remove examples for \"{ locale }\" locale?"
   },
   "are_you_sure_you_want_to_remove_form_dialog_schema_67c927ce": {
     "message": "Are you sure you want to remove form dialog schema \"{ id }\"?"
@@ -935,9 +932,6 @@
   "default_recognizer_9c06c1a3": {
     "message": "Default recognizer"
   },
-  "define_by_value_type_3cd3d1a8": {
-    "message": "Define by value type"
-  },
   "define_conversation_objective_146d1cc6": {
     "message": "Define conversation objective"
   },
@@ -967,6 +961,9 @@
   },
   "delete_knowledge_base_66e3a7f1": {
     "message": "Delete knowledge base"
+  },
+  "delete_locale_examples_6f0c5926": {
+    "message": "Delete \"{ locale }\" examples?"
   },
   "delete_properties_8bc77b42": {
     "message": "Delete Properties"
@@ -1247,12 +1244,6 @@
   "enter_a_manifest_url_to_add_a_new_skill_to_your_bo_57e9d660": {
     "message": "Enter a manifest url to add a new skill to your bot."
   },
-  "enter_a_max_value_14e8ba52": {
-    "message": "Enter a max value"
-  },
-  "enter_a_min_value_c3030813": {
-    "message": "Enter a min value"
-  },
   "enter_a_url_7b4d6063": {
     "message": "Enter a URL"
   },
@@ -1289,11 +1280,14 @@
   "enter_skill_host_endpoint_url_e22eeab5": {
     "message": "Enter Skill host endpoint url"
   },
-  "entities_ef09392c": {
-    "message": "Entities"
+  "entity_92d59f72": {
+    "message": "Entity"
   },
   "entity_defined_in_lu_files_entity_1812c172": {
     "message": "Entity defined in lu files: { entity }"
+  },
+  "enum_examples_for_each_possible_value_153b6663": {
+    "message": "Enum examples for each possible value."
   },
   "environment_68aed6d3": {
     "message": "Environment"
@@ -1306,6 +1300,9 @@
   },
   "error_afac7133": {
     "message": "Error:"
+  },
+  "error_encountered_when_getting_template_readme_17dcbc61": {
+    "message": "### Error encountered when getting template readMe"
   },
   "error_event_c079b608": {
     "message": "Error event"
@@ -1357,6 +1354,9 @@
   },
   "examples_c435f08c": {
     "message": "Examples"
+  },
+  "examples_for_entity_9b50e2e5": {
+    "message": "Examples for entity"
   },
   "existing_files_in_scripts_folder_will_be_overwritt_afa8d787": {
     "message": "Existing files in scripts/folder will be overwritten. Are you sure you want to continue?"
@@ -1480,9 +1480,6 @@
   },
   "for_each_page_3b4d4b69": {
     "message": "For Each Page"
-  },
-  "for_properties_of_type_list_or_enum_your_bot_accep_9e7649c6": {
-    "message": "For properties of type list (or enum), your bot accepts only the values you define. After your dialog is generated, you can provide synonyms for each value."
   },
   "form_dialog_error_ba7c37fe": {
     "message": "Form dialog error"
@@ -1706,9 +1703,6 @@
   "install_the_update_and_restart_composer_fac30a61": {
     "message": "Install the update and restart Composer."
   },
-  "integer_7f378275": {
-    "message": "integer"
-  },
   "integer_b08abbe9": {
     "message": "Integer"
   },
@@ -1877,12 +1871,6 @@
   "list_6cc05": {
     "message": "List"
   },
-  "list_a034633b": {
-    "message": "list"
-  },
-  "list_count_values_33ea7088": {
-    "message": "list - { count } values"
-  },
   "list_of_actions_rendered_as_suggestions_to_user_c0154e0b": {
     "message": "List of actions rendered as suggestions to user."
   },
@@ -2033,9 +2021,6 @@
   "manually_add_question_and_answer_pairs_to_create_a_f1318c4e": {
     "message": "Manually add question and answer pairs to create a KB"
   },
-  "maximum_f0e8e5e4": {
-    "message": "Maximum"
-  },
   "mb_8f9f9e84": {
     "message": "MB"
   },
@@ -2095,9 +2080,6 @@
   },
   "minimap_beb3be27": {
     "message": "Minimap"
-  },
-  "minimum_f31b05ab": {
-    "message": "Minimum"
   },
   "missing_definition_for_defname_33f2b594": {
     "message": "Missing definition for { defName }"
@@ -2185,6 +2167,9 @@
   },
   "navigation_to_see_actions_3be545c9": {
     "message": "navigation to see actions"
+  },
+  "need_another_template_send_us_a_request_5cf2a4d5": {
+    "message": "Need another template? Send us a request"
   },
   "new_13daf639": {
     "message": "New"
@@ -2285,9 +2270,6 @@
   "number_constant_or_expression_to_evaluate_1098771": {
     "message": "Number constant or expression to evaluate."
   },
-  "number_dc1c178": {
-    "message": "number"
-  },
   "number_or_expression_55c7f9f": {
     "message": "Number or expression"
   },
@@ -2363,12 +2345,6 @@
   "optional_properties_2c23c7c6": {
     "message": "Optional properties"
   },
-  "optional_setting_a_maximum_value_enables_your_bot__1ec30919": {
-    "message": "Optional. Setting a maximum value enables your bot to reject a value that is too large and re-prompt the user for a new value."
-  },
-  "optional_setting_a_minimum_value_enables_your_bot__f1fd4bce": {
-    "message": "Optional. Setting a minimum value enables your bot to reject a value that is too small and re-prompt the user for a new value."
-  },
   "options_3ab0ea65": {
     "message": "Options"
   },
@@ -2404,6 +2380,9 @@
   },
   "paste_token_here_eccec7e4": {
     "message": "Paste token here"
+  },
+  "please_add_a_name_to_this_property_to_enable_addin_916ab99c": {
+    "message": "Please add a name to this property to enable adding examples"
   },
   "please_add_at_least_minitems_endpoint_5439fd74": {
     "message": "Please add at least { minItems } endpoint"
@@ -2461,9 +2440,6 @@
   },
   "previous_folder_e7eeb306": {
     "message": "previous folder"
-  },
-  "primary_language_96276a64": {
-    "message": "Primary Language"
   },
   "privacy_290109ea": {
     "message": "Privacy"
@@ -2798,9 +2774,6 @@
   "runtime_config_a2904ff9": {
     "message": "Runtime Config"
   },
-  "runtime_type_f9e2419b": {
-    "message": "Runtime type"
-  },
   "sample_phrases_5d78fa35": {
     "message": "Sample Phrases"
   },
@@ -3124,6 +3097,9 @@
   },
   "switch_to_response_editor_cb0efe35": {
     "message": "Switch to response editor"
+  },
+  "synonyms_31f2e91e": {
+    "message": "Synonyms"
   },
   "synonyms_optional_afe5cdb1": {
     "message": "Synonyms (Optional)"

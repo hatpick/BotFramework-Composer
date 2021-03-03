@@ -55,7 +55,7 @@ type Props = {
 
 export const EnumExampleContent = (props: Props) => {
   const {
-    locale,
+    locale: currentLocale,
     propertyName = '',
     $examples: { title, description, ...rest },
     enums,
@@ -65,14 +65,14 @@ export const EnumExampleContent = (props: Props) => {
 
   const entityName = React.useMemo(
     () =>
-      exampleData[locale] && Object.keys(exampleData[locale])
-        ? Object.keys(exampleData[locale])[0]
+      exampleData[currentLocale] && Object.keys(exampleData[currentLocale])
+        ? Object.keys(exampleData[currentLocale])[0]
         : `${propertyName}Value`,
-    [exampleData, propertyName]
+    [exampleData, currentLocale, propertyName]
   );
 
   const addLocale = () => {
-    onChange({ ...exampleData, [locale]: { [entityName]: {} } });
+    onChange({ ...exampleData, [currentLocale]: { [entityName]: {} } });
   };
 
   return (
@@ -80,7 +80,7 @@ export const EnumExampleContent = (props: Props) => {
       <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
         <FieldLabel defaultRender={<Label>{title}</Label>} helpText={description} tooltipId="examples" />
         <IconButton
-          disabled={!enums?.length || !!exampleData?.[locale]}
+          disabled={!enums?.length || !!exampleData?.[currentLocale]}
           iconProps={{ iconName: 'Add' }}
           onClick={addLocale}
         />
